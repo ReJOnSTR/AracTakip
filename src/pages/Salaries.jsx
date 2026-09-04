@@ -360,8 +360,10 @@ export default function Salaries() {
 
             setConfirmModal({
                 isOpen: true,
-                title: 'Bakiyeyi Devret',
-                message: `${selectedMonth} ayından kalan ${formatCurrency(remainingAmount)} bakiye ${nextMonth} ayına devredilecek. Onaylıyor musunuz?`,
+                title: remainingAmount < -0.1 ? 'Avans Fazlasını Devret' : 'Bakiyeyi Devret',
+                message: remainingAmount < -0.1 
+                    ? `${selectedMonth} ayındaki ${formatCurrency(Math.abs(remainingAmount))} tutarındaki fazla ödeme (avans fazlası), ${nextMonth} ayına mahsup edilmek üzere devredilecek. Onaylıyor musunuz?`
+                    : `${selectedMonth} ayından kalan ${formatCurrency(remainingAmount)} bakiye ${nextMonth} ayına devredilecek. Onaylıyor musunuz?`,
                 onConfirm: async () => {
                     try {
                         const data = {
@@ -375,7 +377,9 @@ export default function Salaries() {
                             salaryMonth: nextMonth,
                             status: 'paid',
                             paymentMethod: 'other',
-                            notes: `${selectedMonth} ayından devreden bakiye`
+                            notes: remainingAmount < -0.1 
+                                ? `${selectedMonth} ayından devreden avans fazlası (kesinti)` 
+                                : `${selectedMonth} ayından devreden bakiye`
                         }
 
                         const res = await window.electronAPI.createSalary(data)
@@ -592,7 +596,8 @@ export default function Salaries() {
         totalPaid: payrollData.reduce((acc, curr) => acc + (curr.bankPaid + curr.cashPaid), 0),
         totalBank: payrollData.reduce((acc, curr) => acc + curr.bankPaid, 0),
         totalCash: payrollData.reduce((acc, curr) => acc + curr.cashPaid, 0),
-        totalRemaining: payrollData.reduce((acc, curr) => acc + curr.remaining, 0)
+        totalRemaining: payrollData.reduce((acc, curr) => acc + Math.max(0, curr.remaining), 0),
+        totalOverpaid: payrollData.reduce((acc, curr) => acc + (curr.remaining < -0.1 ? Math.abs(curr.remaining) : 0), 0)
     }
 
     return (
@@ -673,6 +678,11 @@ export default function Salaries() {
                             {formatCurrency(stats.totalRemaining)}
                         </div>
                         <div className="stat-label">Kalan Ödeme</div>
+                        {stats.totalOverpaid > 0 && (
+                            <div style={{ fontSize: '10.5px', color: 'var(--accent-primary)', marginTop: '2px', fontWeight: 600 }}>
+                                Fazla Avans: +{formatCurrency(stats.totalOverpaid)}
+                            </div>
+                        )}
                         {stats.totalOutboundCarryOver !== 0 && (
                             <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: 500 }}>
                                 Aktarılan: {formatCurrency(stats.totalOutboundCarryOver)}
@@ -757,7 +767,24 @@ export default function Salaries() {
                         {
                             key: 'remaining',
                             label: 'Kalan',
-                            render: (v) => <span style={{ fontWeight: 700, color: v > 0 ? 'var(--danger)' : 'var(--success)', fontSize: '15px' }}>{formatCurrency(v)}</span>
+                            render: (v) => {
+                                if (v > 0.1) {
+                                    return <span style={{ fontWeight: 700, color: 'var(--danger)', fontSize: '15px' }}>{formatCurrency(v)}</span>
+                                }
+                                if (v < -0.1) {
+                                    return (
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                            <span style={{ fontWeight: 700, color: 'var(--accent-primary)', fontSize: '14px' }}>
+                                                +{formatCurrency(Math.abs(v))}
+                                            </span>
+                                            <span style={{ fontSize: '10px', color: 'var(--accent-primary)', fontWeight: 600, background: 'var(--accent-subtle)', padding: '1px 5px', borderRadius: '4px', marginTop: '2px', whiteSpace: 'nowrap' }}>
+                                                Fazla Avans
+                                            </span>
+                                        </div>
+                                    )
+                                }
+                                return <span style={{ fontWeight: 600, color: 'var(--text-muted)', fontSize: '14px' }}>0,00 ₺</span>
+                            }
                         },
                         {
                             key: 'status',
@@ -766,7 +793,10 @@ export default function Salaries() {
                                 if (r.outboundCarryOverAmount !== 0) {
                                     return <span className="badge badge-info" style={{ background: 'var(--accent-subtle)', color: 'var(--accent-primary)' }}>Devredildi</span>
                                 }
-                                if (r.remaining <= 0) {
+                                if (r.remaining < -0.1) {
+                                    return <span className="badge badge-info" style={{ background: 'var(--accent-subtle)', color: 'var(--accent-primary)', fontWeight: 600 }}>Fazla Ödeme</span>
+                                }
+                                if (Math.abs(r.remaining) <= 0.1) {
                                     return <span className="badge badge-success">Tamamlandı</span>
                                 }
                                 if (r.bankPaid > 0 || r.cashPaid > 0) {
@@ -783,6 +813,7 @@ export default function Salaries() {
                             label: 'Durum',
                             options: [
                                 { value: 'Tamamlandı', label: 'Tamamlandı' },
+                                { value: 'Fazla Ödeme', label: 'Fazla Ödeme (Avans)' },
                                 { value: 'Kısmi Ödeme', label: 'Kısmi Ödeme' },
                                 { value: 'Ödenmedi', label: 'Ödenmedi' },
                                 { value: 'Devredildi', label: 'Devredildi' }
@@ -791,7 +822,8 @@ export default function Salaries() {
                             filterFn: (row, value) => {
                                 let statusStr = 'Ödenmedi';
                                 if (row.outboundCarryOverAmount !== 0) statusStr = 'Devredildi';
-                                else if (row.remaining <= 0) statusStr = 'Tamamlandı';
+                                else if (row.remaining < -0.1) statusStr = 'Fazla Ödeme';
+                                else if (Math.abs(row.remaining) <= 0.1) statusStr = 'Tamamlandı';
                                 else if (row.bankPaid > 0 || row.cashPaid > 0) statusStr = 'Kısmi Ödeme';
                                 return statusStr === value;
                             }
@@ -983,9 +1015,17 @@ export default function Salaries() {
                             </div>
                         )}
 
-                        <div className="detail-row total-row" style={{ marginTop: '12px', fontSize: '18px', color: selectedPayroll.remaining > 0 ? 'var(--danger)' : 'var(--text-primary)' }}>
-                            <span>Kalan Ödeme:</span>
-                            <span>{formatCurrency(selectedPayroll.remaining)}</span>
+                        <div className="detail-row total-row" style={{ 
+                            marginTop: '12px', 
+                            fontSize: '18px', 
+                            color: selectedPayroll.remaining > 0.1 ? 'var(--danger)' : selectedPayroll.remaining < -0.1 ? 'var(--accent-primary)' : 'var(--text-primary)' 
+                        }}>
+                            <span>{selectedPayroll.remaining < -0.1 ? 'Fazla Ödeme (Avans Fazlası):' : 'Kalan Ödeme:'}</span>
+                            <span style={{ fontWeight: 700 }}>
+                                {selectedPayroll.remaining < -0.1 
+                                    ? `+${formatCurrency(Math.abs(selectedPayroll.remaining))}` 
+                                    : formatCurrency(selectedPayroll.remaining)}
+                            </span>
                         </div>
 
                         <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '10px', alignItems: 'center' }}>
@@ -1012,7 +1052,7 @@ export default function Salaries() {
                                         }}
                                         onClick={() => handleCarryOver(selectedPayroll, remainingBeforeCarry)}
                                     >
-                                        {hasCarryOver ? 'Devri İptal Et' : 'Sonraki Aya Devret'}
+                                        {hasCarryOver ? 'Devri İptal Et' : (remainingBeforeCarry < -0.1 ? 'Avans Fazlasını Sonraki Aya Devret' : 'Sonraki Aya Devret')}
                                     </button>
                                 )
                             })()}
@@ -1103,8 +1143,17 @@ export default function Salaries() {
 
                         {/* Helper Text for Suggestion */}
                         {paymentModal.type === 'payment' && (
-                            <div style={{ fontSize: '13px', color: 'var(--danger-color)', marginTop: '-8px', marginBottom: '8px', textAlign: 'right', fontWeight: 600 }}>
-                                Toplam Kalan Ödeme: {formatCurrency(paymentModal.employee.remaining || 0)}
+                            <div style={{ 
+                                fontSize: '13px', 
+                                color: (paymentModal.employee?.remaining || 0) < -0.1 ? 'var(--accent-primary)' : 'var(--danger)', 
+                                marginTop: '-8px', 
+                                marginBottom: '8px', 
+                                textAlign: 'right', 
+                                fontWeight: 600 
+                            }}>
+                                {(paymentModal.employee?.remaining || 0) < -0.1 
+                                    ? `Fazla Ödeme (Avans): +${formatCurrency(Math.abs(paymentModal.employee?.remaining || 0))}` 
+                                    : `Toplam Kalan Ödeme: ${formatCurrency(paymentModal.employee?.remaining || 0)}`}
                             </div>
                         )}
 
@@ -1392,8 +1441,12 @@ export default function Salaries() {
                                 </div>
                             )}
                             <div className="summary-row final">
-                                <span>KALAN BAKİYE</span>
-                                <span>{formatCurrency(selectedPayroll.remaining)}</span>
+                                <span>{selectedPayroll.remaining < -0.1 ? 'FAZLA ÖDEME (AVANS FAZLASI)' : 'KALAN BAKİYE'}</span>
+                                <span>
+                                    {selectedPayroll.remaining < -0.1 
+                                        ? `+${formatCurrency(Math.abs(selectedPayroll.remaining))}` 
+                                        : formatCurrency(selectedPayroll.remaining)}
+                                </span>
                             </div>
                         </div>
                     </div>

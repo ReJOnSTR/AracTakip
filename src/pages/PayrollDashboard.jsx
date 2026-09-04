@@ -438,12 +438,13 @@ export default function PayrollDashboard() {
                             {formatCurrency(value)}
                         </span>
                     )
-                } else if (value < 0) {
+                } else if (value < -0.1) {
                     const overpaidAmount = Math.abs(value)
                     return (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--info)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-primary)' }}>
                             <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
-                            <span style={{ fontWeight: '600', fontSize: '13px' }}>{formatCurrency(overpaidAmount)}</span>
+                            <span style={{ fontWeight: '700', fontSize: '13px' }}>+{formatCurrency(overpaidAmount)}</span>
+                            <span style={{ fontSize: '10px', background: 'var(--accent-subtle)', padding: '1px 5px', borderRadius: '4px', fontWeight: 600 }}>Fazla Avans</span>
                         </div>
                     )
                 } else {

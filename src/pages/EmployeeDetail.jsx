@@ -1293,15 +1293,17 @@ export default function EmployeeDetail() {
                 }
             })
         } else {
-            if (netRemaining === 0) {
+            if (Math.abs(netRemaining) < 0.1) {
                 showToast('Kalan bakiye 0 olduğu için devredilemez.', 'warning')
                 return
             }
 
             setConfirmModal({
                 type: 'carryover',
-                title: 'Bakiyeyi Devret',
-                message: `${selectedMonth} ayından kalan ${formatCurrency(netRemaining)} bakiye ${nextMonth} ayına devredilecek. Onaylıyor musunuz?`,
+                title: netRemaining < -0.1 ? 'Avans Fazlasını Devret' : 'Bakiyeyi Devret',
+                message: netRemaining < -0.1 
+                    ? `${selectedMonth} ayındaki ${formatCurrency(Math.abs(netRemaining))} tutarındaki fazla ödeme (avans fazlası), ${nextMonth} ayına mahsup edilmek üzere devredilecek. Onaylıyor musunuz?`
+                    : `${selectedMonth} ayından kalan ${formatCurrency(netRemaining)} bakiye ${nextMonth} ayına devredilecek. Onaylıyor musunuz?`,
                 confirmText: 'Onaylıyorum',
                 styleType: 'primary',
                 onConfirm: async () => {
@@ -1317,7 +1319,9 @@ export default function EmployeeDetail() {
                             salaryMonth: nextMonth,
                             status: 'paid',
                             paymentMethod: 'other',
-                            notes: `${selectedMonth} ayından devreden bakiye`
+                            notes: netRemaining < -0.1 
+                                ? `${selectedMonth} ayından devreden avans fazlası (kesinti)` 
+                                : `${selectedMonth} ayından devreden bakiye`
                         }
 
                         const res = await window.electronAPI.createSalary(data)
@@ -2594,27 +2598,35 @@ export default function EmployeeDetail() {
                                     {/* Kalan Bakiye */}
                                     <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Kalan Net Bakiye</div>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
+                                                {calc.isOverpaid ? 'Fazla Ödeme (Avans Fazlası)' : 'Kalan Net Bakiye'}
+                                            </div>
                                             {(() => {
                                                 const nextMonth = getNextMonth(selectedMonth)
                                                 const hasCarryOver = salaries.some(s => s.salary_month === nextMonth && s.period === 'carryover')
                                                 return (
                                                     <button 
                                                         style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-primary)', padding: '2px 8px', fontSize: '11px', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, borderRadius: '4px' }}
-                                                        onClick={() => handleCarryOver(calc.netRemaining)}
+                                                        onClick={() => handleCarryOver(calc.rawRemaining)}
                                                     >
-                                                        {hasCarryOver ? 'Devri İptal Et' : 'Devret'}
+                                                        {hasCarryOver ? 'Devri İptal Et' : (calc.isOverpaid ? 'Fazla Avansı Devret' : 'Devret')}
                                                     </button>
                                                 )
                                             })()}
                                         </div>
-                                        <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--warning)' }}>
-                                            {formatCurrency(calc.netRemaining)}
+                                        <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: calc.isOverpaid ? 'var(--accent-primary)' : calc.netRemaining > 0 ? 'var(--warning)' : 'var(--success)' }}>
+                                            {calc.isOverpaid ? `+${formatCurrency(calc.overpaidAmount)}` : formatCurrency(calc.netRemaining)}
                                         </div>
                                         <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
-                                            <span style={{ color: calc.progress >= 100 ? 'var(--success)' : 'var(--warning)' }}>%{calc.progress} Ödendi</span>
-                                            <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
-                                            <span>{calc.pendingCount} Kayıt Bekliyor</span>
+                                            {calc.isOverpaid ? (
+                                                <span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Sonraki Aydan Mahsup Edilebilir</span>
+                                            ) : (
+                                                <>
+                                                    <span style={{ color: calc.progress >= 100 ? 'var(--success)' : 'var(--warning)' }}>%{calc.progress} Ödendi</span>
+                                                    <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
+                                                    <span>{calc.pendingCount} Kayıt Bekliyor</span>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
 

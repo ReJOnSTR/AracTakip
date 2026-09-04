@@ -93,8 +93,11 @@ export function calculateEmployeeMonthlyPayroll(employee, salaries = [], overtim
 
     const totalPaid = paidSalary + paidOt + paidAdvance + paidBonus + paidExpense + paidOther + paidLoanDeduction
 
-    // 8. Net Remaining Balance (Kalan Bakiye)
-    const netRemaining = Math.max(0, netTarget - totalPaid - outboundCarryover)
+    // 8. Net Remaining Balance (Kalan Bakiye & Fazla Ödeme)
+    const rawRemaining = netTarget - totalPaid - outboundCarryover
+    const netRemaining = Math.max(0, rawRemaining)
+    const isOverpaid = rawRemaining < -0.1
+    const overpaidAmount = isOverpaid ? Math.abs(rawRemaining) : 0
 
     // 9. Payment Metadata & Progress
     const paidRecords = monthlySalaries.filter(s => s.status === 'paid' && (s.payment_date || s.created_at))
@@ -148,6 +151,9 @@ export function calculateEmployeeMonthlyPayroll(employee, salaries = [], overtim
         paidLoanDeduction,
         totalPaid,
         netRemaining,
+        rawRemaining,
+        isOverpaid,
+        overpaidAmount,
         lastPaidDate,
         pendingCount,
         progress,
