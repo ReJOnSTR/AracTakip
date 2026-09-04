@@ -18,7 +18,7 @@ import DocumentForm from '../components/forms/DocumentForm'
 import DocumentGeneratorModal from '../components/DocumentGeneratorModal'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
 import { usePersistentTab } from '../hooks/usePersistentTab'
-import { formatCurrency, formatDate, getHistoricalBaseSalary, getHistoricalFullSalary, formatDateForInput, formatDateTime, calculateLeaveDays, calculateLeaveEndDate, checkDateHolidayStatus, getLeaveBreakdown } from '../utils/helpers'
+import { formatCurrency, formatDate, getHistoricalBaseSalary, getHistoricalFullSalary, formatDateForInput, formatDateTime, calculateLeaveDays, calculateLeaveEndDate, checkDateHolidayStatus, getLeaveBreakdown, isCreditLeave, isAdditiveAnnual } from '../utils/helpers'
 import { calculateEmployeeMonthlyPayroll } from '../utils/payrollCalculator'
 import PermissionMatrix, { ROLE_PRESETS } from '../components/PermissionMatrix'
 import {
@@ -1934,9 +1934,35 @@ export default function EmployeeDetail() {
     ]
 
     const leaveColumns = [
-        { key: 'type', label: 'Tür', render: (v) => {
+        { key: 'type', label: 'Tür', render: (v, row) => {
             const lt = leaveTypes.find(t => t.value === v)
-            if (v === 'offset' || v === 'Mahsup') return <span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Mahsup</span>
+            const isCredit = isCreditLeave(row || v)
+            const label = lt?.label || (v === 'offset' ? 'Mahsup' : v)
+
+            if (isCredit) {
+                const isMahsup = v === 'offset' || v === 'Mahsup' || (typeof v === 'string' && v.toLowerCase().includes('mahsup'))
+                return (
+                    <span 
+                        className="badge" 
+                        style={{ 
+                            background: isMahsup ? 'rgba(16, 185, 129, 0.12)' : 'rgba(99, 102, 241, 0.12)', 
+                            color: isMahsup ? '#059669' : '#4f46e5', 
+                            border: `1px solid ${isMahsup ? 'rgba(16, 185, 129, 0.28)' : 'rgba(99, 102, 241, 0.28)'}`,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontWeight: 600,
+                            fontSize: '11.5px',
+                            padding: '3px 8px'
+                        }}
+                        title={isMahsup ? 'Mesai / İzin Mahsuplaşması (+ Bakiye)' : 'İlave İzin / Hak Ediş (+ Bakiye)'}
+                    >
+                        <span style={{ fontSize: '12px', fontWeight: 700 }}>{isMahsup ? '⇄' : '+'}</span>
+                        <span>{label}</span>
+                    </span>
+                )
+            }
+
             return lt?.label || v
         }},
         { key: 'start_date', label: 'Başlangıç', render: (v) => formatDate(v) },
@@ -1950,6 +1976,30 @@ export default function EmployeeDetail() {
                 }
                 return `${v} Gün`;
             })();
+            const isCredit = isCreditLeave(row);
+
+            if (isCredit) {
+                return (
+                    <span 
+                        style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '3px',
+                            color: '#059669', 
+                            fontWeight: 700,
+                            background: 'rgba(16, 185, 129, 0.12)',
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            border: '1px solid rgba(16, 185, 129, 0.25)',
+                            fontSize: '12px'
+                        }}
+                        title="Bakiyeye İlave Edilen Süre (+)"
+                    >
+                        +{displayVal}
+                    </span>
+                );
+            }
+
             return <span style={{ fontWeight: 600 }}>{displayVal}</span>;
         }},
         {key: 'status', label: 'Durum', render: (v, row) => { 
@@ -2675,28 +2725,10 @@ export default function EmployeeDetail() {
                                         }
 
                                         const pastUsed = employee.past_used_leaves || 0
-                                         const isAdditiveAnnual = (type) => {
-                                             if (!type) return false;
-                                             const normalized = type
-                                                 .replace(/İ/g, 'i')
-                                                 .replace(/I/g, 'ı')
-                                                 .replace(/ı/g, 'i')
-                                                 .replace(/ö/g, 'o')
-                                                 .replace(/ü/g, 'u')
-                                                 .replace(/ş/g, 's')
-                                                 .replace(/ğ/g, 'g')
-                                                 .replace(/ç/g, 'c')
-                                                 .toLowerCase()
-                                                 .normalize('NFD')
-                                                 .replace(/[\u0300-\u036f]/g, '');
-                                             const hasYillik = normalized.includes('yillik') || normalized === 'annual';
-                                             const hasAdditiveKeyword = ['ekleme', 'ilave', 'arti', 'arttir', 'kazanilan', 'devir'].some(keyword => normalized.includes(keyword));
-                                             return hasYillik && hasAdditiveKeyword;
-                                         };
-                                         // Count both 'annual' and localized names like 'Yıllık Ücretli İzin' (excluding additive ones)
+                                         // Count both 'annual' and localized names like 'Yıllık Ücretli İzin' (excluding credit/additive ones)
                                          const systemUsedAnnual = leaves.filter(l => 
                                              l.status === 'approved' && 
-                                             ((l.type === 'annual' || (l.type && l.type.toLowerCase().includes('yıllık'))) && !isAdditiveAnnual(l.type))
+                                             ((l.type === 'annual' || (l.type && l.type.toLowerCase().includes('yıllık'))) && !isCreditLeave(l))
                                          ).reduce((acc, l) => acc + (l.days || 0), 0)
                                         
                                         // Calculate OT balance for the offset button
@@ -2801,6 +2833,7 @@ export default function EmployeeDetail() {
                             storageKey="emp_leave_cols"
                             columns={leaveColumns}
                             data={combinedLeaves}
+                            rowClassName={(row) => isCreditLeave(row) ? 'green-row credit-leave-row' : ''}
                             emptyMessage="Henüz izin kaydı bulunmuyor."
                             filters={[
                                 { key: 'type', label: 'İzin Türü', options: leaveTypes },

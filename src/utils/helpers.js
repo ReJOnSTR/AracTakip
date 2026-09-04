@@ -684,6 +684,46 @@ export function formatDayBalance(days, customWhpl) {
     return `${sign}${hours} saat`
 }
 
+
+/**
+ * Determines if a leave record or type represents a credit/additive transaction
+ * (e.g. Mahsup / Offset, İlave Yıllık İzin, Hak Ediş, Devir, vb.)
+ * which increases or offsets rather than consuming regular leave entitlement.
+ */
+export const isCreditLeave = (leaveOrType) => {
+    if (!leaveOrType) return false;
+    const type = typeof leaveOrType === 'string' ? leaveOrType : (leaveOrType.type || '');
+    const notes = typeof leaveOrType === 'object' ? (leaveOrType.notes || '') : '';
+
+    if (type === 'offset' || type === 'Mahsup') return true;
+
+    const normalized = type
+        .replace(/İ/g, 'i')
+        .replace(/I/g, 'ı')
+        .replace(/ı/g, 'i')
+        .replace(/ö/g, 'o')
+        .replace(/ü/g, 'u')
+        .replace(/ş/g, 's')
+        .replace(/ğ/g, 'g')
+        .replace(/ç/g, 'c')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+
+    if (normalized.includes('mahsup')) return true;
+
+    const hasAdditiveKeyword = ['ekleme', 'ilave', 'arti', 'arttir', 'kazanilan', 'devir', 'telafi', 'denklestirme', 'hakedis', 'hak edis'].some(keyword => normalized.includes(keyword));
+    if (hasAdditiveKeyword) return true;
+
+    if (notes && (notes.includes('[MAHSUP]') || notes.includes('[İLAVE]') || notes.includes('[ILAVE]'))) {
+        return true;
+    }
+
+    return false;
+};
+
+export const isAdditiveAnnual = isCreditLeave;
+
 export function calculateRemainingLeaves(employee, leaves) {
     if (!employee || !employee.start_date) return 0
     const start = new Date(employee.start_date)
@@ -712,35 +752,16 @@ export function calculateRemainingLeaves(employee, leaves) {
     }
 
     const pastUsed = employee.past_used_leaves || 0
-    
-    const isAdditiveAnnual = (type) => {
-        if (!type) return false;
-        const normalized = type
-            .replace(/İ/g, 'i')
-            .replace(/I/g, 'ı')
-            .replace(/ı/g, 'i')
-            .replace(/ö/g, 'o')
-            .replace(/ü/g, 'u')
-            .replace(/ş/g, 's')
-            .replace(/ğ/g, 'g')
-            .replace(/ç/g, 'c')
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '');
-        const hasYillik = normalized.includes('yillik') || normalized === 'annual';
-        const hasAdditiveKeyword = ['ekleme', 'ilave', 'arti', 'arttir', 'kazanilan', 'devir'].some(keyword => normalized.includes(keyword));
-        return hasYillik && hasAdditiveKeyword;
-    };
 
     // Count both 'annual' and localized names like 'Yıllık Ücretli İzin' (excluding additive ones)
     const systemUsedAnnual = (leaves || []).filter(l => 
         l.status === 'approved' && 
-        ((l.type === 'annual' || (l.type && l.type.toLowerCase().includes('yıllık'))) && !isAdditiveAnnual(l.type))
+        ((l.type === 'annual' || (l.type && l.type.toLowerCase().includes('yıllık'))) && !isCreditLeave(l))
     ).reduce((acc, l) => acc + (l.days || 0), 0)
 
     const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
     const totalOffsets = (leaves || [])
-        .filter(l => l.status === 'approved' && l.type && (l.type === 'offset' || l.type.toLowerCase() === 'mahsup' || isAdditiveAnnual(l.type)))
+        .filter(l => l.status === 'approved' && isCreditLeave(l))
         .reduce((acc, l) => acc + (l.hours ? l.hours / whpl : (l.days || 0)), 0)
 
     const balance = totalAccrued - pastUsed - systemUsedAnnual + totalOffsets

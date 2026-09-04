@@ -24,7 +24,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import DataTable from '../components/DataTable';
 import CustomInput from '../components/CustomInput';
 import CustomSelect from '../components/CustomSelect';
-import { formatDate, today, formatDateForInput, calculateLeaveDays, calculateLeaveEndDate, checkDateHolidayStatus, getLeaveBreakdown } from '../utils/helpers';
+import { formatDate, today, formatDateForInput, calculateLeaveDays, calculateLeaveEndDate, checkDateHolidayStatus, getLeaveBreakdown, isCreditLeave } from '../utils/helpers';
 
 export default function Leaves() {
     const { currentCompany } = useCompany();
@@ -81,7 +81,8 @@ export default function Leaves() {
         { value: 'Babalık İzni', label: 'Babalık İzni', color: '#0ea5e9' },
         { value: 'Süt İzni', label: 'Süt İzni', color: '#10b981' },
         { value: 'İdari İzin', label: 'İdari İzin', color: '#6366f1' },
-        { value: 'Mesai İzni (Mahsup)', label: 'Mesai İzni (Mahsup)', color: '#f97316' },
+        { value: 'Mesai İzni (Mahsup)', label: 'Mesai İzni (Mahsup)', color: '#10b981' },
+        { value: 'İlave Yıllık İzin (Hak Ediş)', label: 'İlave Yıllık İzin (Hak Ediş)', color: '#6366f1' },
         { value: 'Diğer', label: 'Diğer', color: '#94a3b8' }
     ];
 
@@ -98,7 +99,8 @@ export default function Leaves() {
         'Babalık İzni': '#0ea5e9',
         'Süt İzni': '#10b981',
         'İdari İzin': '#6366f1',
-        'Mesai İzni (Mahsup)': '#f97316',
+        'Mesai İzni (Mahsup)': '#10b981',
+        'İlave Yıllık İzin (Hak Ediş)': '#6366f1',
         'Diğer': '#94a3b8'
     };
 
@@ -520,11 +522,38 @@ export default function Leaves() {
         {
             key: 'type',
             label: 'İzin Türü',
-            render: (val) => {
+            render: (val, row) => {
                 const type = leaveTypes.find(t => t.value === val);
+                const isCredit = isCreditLeave(row || val);
+                const label = type?.label || (val === 'offset' ? 'Mahsup' : val);
+
+                if (isCredit) {
+                    const isMahsup = val === 'offset' || val === 'Mahsup' || (typeof val === 'string' && val.toLowerCase().includes('mahsup'));
+                    return (
+                        <span 
+                            className="badge" 
+                            style={{ 
+                                background: isMahsup ? 'rgba(16, 185, 129, 0.12)' : 'rgba(99, 102, 241, 0.12)', 
+                                color: isMahsup ? '#059669' : '#4f46e5', 
+                                border: `1px solid ${isMahsup ? 'rgba(16, 185, 129, 0.28)' : 'rgba(99, 102, 241, 0.28)'}`,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontWeight: 600,
+                                fontSize: '11.5px',
+                                padding: '3px 8px'
+                            }}
+                            title={isMahsup ? 'Mesai / İzin Mahsuplaşması (+ Bakiye)' : 'İlave İzin / Hak Ediş (+ Bakiye)'}
+                        >
+                            <span style={{ fontSize: '12px', fontWeight: 700 }}>{isMahsup ? '⇄' : '+'}</span>
+                            <span>{label}</span>
+                        </span>
+                    );
+                }
+
                 return (
                     <span style={{ color: type?.color || 'inherit', fontWeight: 600 }}>
-                        {type?.label || val}
+                        {label}
                     </span>
                 );
             }
@@ -542,14 +571,38 @@ export default function Leaves() {
             key: 'days',
             label: 'Süre',
             render: (val, row) => {
+                const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8;
                 const displayVal = (() => {
                     if (row.hours) return `${row.hours} Saat`;
                     if (val && val % 1 !== 0) {
-                        const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8;
                         return `${Math.round(val * whpl * 100) / 100} Saat`;
                     }
                     return `${val} Gün`;
                 })();
+                const isCredit = isCreditLeave(row);
+
+                if (isCredit) {
+                    return (
+                        <span 
+                            style={{ 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                gap: '3px',
+                                color: '#059669', 
+                                fontWeight: 700,
+                                background: 'rgba(16, 185, 129, 0.12)',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                border: '1px solid rgba(16, 185, 129, 0.25)',
+                                fontSize: '12px'
+                            }}
+                            title="Bakiyeye İlave Edilen Süre (+)"
+                        >
+                            +{displayVal}
+                        </span>
+                    );
+                }
+
                 return <span style={{ fontWeight: 600 }}>{displayVal}</span>;
             }
         },
@@ -716,6 +769,7 @@ export default function Leaves() {
                 columns={columns}
                 data={leaves}
                 persistenceKey="leaves_table"
+                rowClassName={(row) => isCreditLeave(row) ? 'green-row credit-leave-row' : ''}
                 showSearch={true}
                 showCheckboxes={true}
                 onBulkDelete={handleBulkDelete}
