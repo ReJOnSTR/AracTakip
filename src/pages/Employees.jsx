@@ -10,7 +10,7 @@ import EmployeeForm from '../components/forms/EmployeeForm'
 import BulkDocumentGeneratorModal from '../components/BulkDocumentGeneratorModal'
 import { formatCurrency, getEmployeeStatusInfo } from '../utils/helpers'
 import { employeeService } from '../services'
-import { Plus, Pencil, Trash2, Users, Building2, AlertCircle, Calendar, FileText, UserCheck } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users, Building2, AlertCircle, Calendar, FileText, UserCheck, Archive, ArchiveRestore } from 'lucide-react'
 import CreatePersonnelUserModal from '../components/personnel/CreatePersonnelUserModal'
 
 const statusOptions = [
@@ -167,6 +167,12 @@ export default function Employees() {
         for (const id of ids) {
             await window.electronAPI.archiveItem('employees', id, newStatus)
         }
+        loadEmployees()
+    }
+
+    const handleArchiveClick = async (employee) => {
+        const newStatus = showArchived ? 0 : 1
+        await window.electronAPI.archiveItem('employees', employee.id, newStatus)
         loadEmployees()
     }
 
@@ -385,6 +391,12 @@ export default function Employees() {
                     <>
                         <button title="Düzenle" onClick={() => openEditModal(employee)}>
                             <Pencil size={16} />
+                        </button>
+                        <button 
+                            title={showArchived ? "Arşivden Çıkar" : "Arşivle"} 
+                            onClick={() => handleArchiveClick(employee)}
+                        >
+                            {showArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
                         </button>
                         <button title="Sil" className="danger" onClick={() => handleDeleteClick(employee)}>
                             <Trash2 size={16} />

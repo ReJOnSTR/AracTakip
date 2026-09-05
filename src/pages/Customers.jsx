@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Plus, Users, Pencil, Trash2, Building2, Phone, Mail, MapPin, DollarSign } from 'lucide-react'
+import { Plus, Users, Pencil, Trash2, Building2, Phone, Mail, MapPin, DollarSign, Archive, ArchiveRestore } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
@@ -126,6 +126,12 @@ export default function Customers() {
         for (const id of ids) {
             await window.electronAPI.archiveItem('customers', id, newStatus)
         }
+        loadCustomers()
+    }
+
+    const handleArchiveClick = async (customer) => {
+        const newStatus = showArchived ? 0 : 1
+        await window.electronAPI.archiveItem('customers', customer.id, newStatus)
         loadCustomers()
     }
 
@@ -277,10 +283,17 @@ export default function Customers() {
                 isArchiveView={showArchived}
                 onToggleArchiveView={setShowArchived}
                 actions={(item) => (
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }} onClick={(e) => e.stopPropagation()}>
-                        <button className="btn-icon" title="Düzenle" onClick={(e) => { e.stopPropagation(); openEditModal(item) }}><Pencil size={16} /></button>
-                        <button className="btn-icon danger" title="Sil" onClick={(e) => { e.stopPropagation(); handleDeleteClick(item) }}><Trash2 size={16} /></button>
-                    </div>
+                    <>
+                        <button className="btn-icon" title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
+                        <button 
+                            className="btn-icon" 
+                            title={showArchived ? "Arşivden Çıkar" : "Arşivle"} 
+                            onClick={() => handleArchiveClick(item)}
+                        >
+                            {showArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+                        </button>
+                        <button className="btn-icon danger" title="Sil" onClick={() => handleDeleteClick(item)}><Trash2 size={16} /></button>
+                    </>
                 )}
             />
 

@@ -3,7 +3,7 @@ import { ArrowUp, ArrowDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRi
 import * as XLSX from 'xlsx'
 import CustomSelect from './CustomSelect'
 import CustomDatePicker from './CustomDatePicker'
-import { TableVirtuoso } from 'react-virtuoso'
+import TableActionMenu from './TableActionMenu'
 
 export default function DataTable({
     columns,
@@ -514,10 +514,9 @@ export default function DataTable({
             total += width
         })
 
-        if (actions) total += 110 // Actions column width approx
-
+        if (actions || onRowClick) total += 60 // Actions column width approx
         return total
-    }, [visibleColumnsList, columnWidths, showCheckboxes, showRowNumbers, actions])
+    }, [visibleColumnsList, columnWidths, showCheckboxes, showRowNumbers, actions, onRowClick])
 
 
     const handleSort = (key) => {
@@ -1118,7 +1117,7 @@ export default function DataTable({
                         {paginatedData.length === 0 ? (
                             <tr>
                                 <td
-                                    colSpan={visibleColumnsList.length + (actions ? 1 : 0) + (showRowNumbers ? 1 : 0) + (showCheckboxes ? 1 : 0)}
+                                    colSpan={visibleColumnsList.length + ((actions || onRowClick) ? 1 : 0) + (showRowNumbers ? 1 : 0) + (showCheckboxes ? 1 : 0)}
                                     className="empty-cell"
                                 >
                                     {hasActiveFilters ? 'Filtre sonucu bulunamadı' : emptyMessage}
@@ -1173,16 +1172,12 @@ export default function DataTable({
                                     {(actions || onRowClick) && (
                                         <td className="td-actions" onClick={(e) => e.stopPropagation()}>
                                             <div className="action-btns">
-                                                {actions && actions(row)}
-                                                {onRowClick && (
-                                                    <button 
-                                                        className="btn-icon row-details-btn" 
-                                                        onClick={(e) => handleRowClick(row, e, index)}
-                                                        title="Detaya Git"
-                                                    >
-                                                        <ChevronRight size={18} />
-                                                    </button>
-                                                )}
+                                                <TableActionMenu
+                                                    onRowClick={onRowClick ? (e) => handleRowClick(row, e, index) : null}
+                                                    row={row}
+                                                >
+                                                    {actions ? (typeof actions === 'function' ? actions(row) : actions) : null}
+                                                </TableActionMenu>
                                             </div>
                                         </td>
                                     )}

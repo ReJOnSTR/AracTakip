@@ -2417,35 +2417,35 @@ textarea,
 }
 
 .table-3dots-btn {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 6px;
   cursor: pointer;
-  color: var(--text-secondary, #a1a1aa);
+  color: var(--text-muted, #a1a1aa);
   transition: all 0.15s ease;
 }
 
 .table-3dots-btn:hover,
 .table-3dots-btn.active {
-  background: var(--bg-tertiary, rgba(255, 255, 255, 0.12));
-  border-color: var(--border-color, rgba(255, 255, 255, 0.2));
+  background: var(--bg-tertiary, rgba(255, 255, 255, 0.08));
+  border-color: var(--border-color, rgba(255, 255, 255, 0.14));
   color: var(--text-primary, #ffffff);
 }
 
 .table-action-popover {
   position: fixed;
   min-width: 160px;
-  max-width: 240px;
-  background: #18181b;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  max-width: 260px;
+  background: var(--bg-secondary, #18181b);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.14));
   border-radius: 8px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  padding: 5px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  padding: 4px;
   z-index: 999999;
   backdrop-filter: blur(16px);
   display: flex;
@@ -2454,10 +2454,16 @@ textarea,
   animation: popoverFadeIn 0.12s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.table-action-popover-divider {
+  height: 1px;
+  background: var(--border-color, rgba(255, 255, 255, 0.08));
+  margin: 4px 2px;
+}
+
 .table-action-popover-item {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   width: 100%;
   padding: 8px 12px;
   border-radius: 6px;
@@ -2466,31 +2472,37 @@ textarea,
   text-align: left;
   background: transparent;
   border: none;
-  color: #f4f4f5;
+  color: var(--text-primary, #f4f4f5);
   cursor: pointer;
   transition: all 0.12s ease;
+  user-select: none;
 }
 
-.table-action-popover-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+.table-action-popover-item:hover:not(:disabled) {
+  background: var(--bg-tertiary, rgba(255, 255, 255, 0.08));
+  color: var(--text-primary, #ffffff);
+}
+
+.table-action-popover-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .table-action-popover-item.danger {
-  color: #ef4444;
+  color: var(--danger, #ef4444);
 }
 
-.table-action-popover-item.danger:hover {
-  background: rgba(239, 68, 68, 0.16);
+.table-action-popover-item.danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.14);
   color: #f87171;
 }
 
 .table-action-popover-item.success {
-  color: #10b981;
+  color: var(--success, #10b981);
 }
 
-.table-action-popover-item.success:hover {
-  background: rgba(16, 185, 129, 0.16);
+.table-action-popover-item.success:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.14);
   color: #34d399;
 }
 
@@ -2500,6 +2512,7 @@ textarea,
   justify-content: center;
   width: 18px;
   flex-shrink: 0;
+  color: inherit;
 }
 
 .popover-item-label {

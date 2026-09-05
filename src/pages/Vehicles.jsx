@@ -14,7 +14,7 @@ import {
     getVehicleTypeLabel,
     getVehicleStatusInfo
 } from '../utils/helpers'
-import { Plus, Pencil, Trash2, Car, Building2, AlertCircle } from 'lucide-react'
+import { Plus, Pencil, Trash2, Car, Building2, AlertCircle, Archive, ArchiveRestore } from 'lucide-react'
 import VehicleForm from '../components/VehicleForm'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 
@@ -196,6 +196,12 @@ export default function Vehicles() {
         loadVehicles()
     }
 
+    const handleArchiveClick = async (vehicle) => {
+        const newStatus = showArchived ? 0 : 1
+        await window.electronAPI.archiveItem('vehicles', vehicle.id, newStatus)
+        loadVehicles()
+    }
+
     // PC Context Menu Listener
     useEffect(() => {
         const handleContextAction = (action) => {
@@ -374,6 +380,12 @@ export default function Vehicles() {
                     <>
                         <button title="Düzenle" onClick={() => openEditModal(vehicle)}>
                             <Pencil size={16} />
+                        </button>
+                        <button 
+                            title={showArchived ? "Arşivden Çıkar" : "Arşivle"} 
+                            onClick={() => handleArchiveClick(vehicle)}
+                        >
+                            {showArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
                         </button>
                         <button title="Sil" className="danger" onClick={() => handleDeleteClick(vehicle)}>
                             <Trash2 size={16} />

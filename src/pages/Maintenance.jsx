@@ -19,7 +19,7 @@ import {
     getDaysUntilText,
     getStatusColor
 } from '../utils/helpers'
-import { Plus, Pencil, Trash2, Wrench, Building2, Eye } from 'lucide-react'
+import { Plus, Pencil, Trash2, Wrench, Building2, Eye, Archive, ArchiveRestore } from 'lucide-react'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
 import BatchOperationModal from '../components/BatchOperationModal'
 
@@ -189,6 +189,12 @@ export default function Maintenance() {
         for (const id of ids) {
             await window.electronAPI.archiveItem('maintenances', id, newStatus)
         }
+        loadData()
+    }
+
+    const handleArchiveClick = async (item) => {
+        const newStatus = showArchived ? 0 : 1
+        await window.electronAPI.archiveItem('maintenances', item.id, newStatus)
         loadData()
     }
 
@@ -500,6 +506,12 @@ export default function Maintenance() {
                 actions={(item) => (
                     <>
                         <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
+                        <button 
+                            title={showArchived ? "Arşivden Çıkar" : "Arşivle"} 
+                            onClick={() => handleArchiveClick(item)}
+                        >
+                            {showArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+                        </button>
                         <button title="Sil" className="danger" onClick={() => handleDeleteClick(item)}><Trash2 size={16} /></button>
                     </>
                 )}
