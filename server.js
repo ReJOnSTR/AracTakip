@@ -582,6 +582,7 @@ const rpcMap = {
     resetPlatformUserPassword: db.resetPlatformUserPassword,
     impersonatePlatformUser: db.impersonatePlatformUser,
     createPlatformUser: db.createPlatformUser,
+    updatePlatformUser: db.updatePlatformUser,
     deletePlatformUser: db.deletePlatformUser,
     toggleCompanyStatus: db.toggleCompanyStatus,
     toggleUserStatus: db.toggleUserStatus,

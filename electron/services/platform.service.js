@@ -933,11 +933,31 @@ async function updatePlatformUser(userId, userData) {
         if (userData.email !== undefined) updateData.email = userData.email.toLowerCase().trim();
         if (userData.role !== undefined) updateData.role = userData.role;
         if (userData.isActive !== undefined) updateData.is_active = (userData.isActive === 1 || userData.isActive === true) ? 1 : 0;
+        if (userData.roleId !== undefined) updateData.role_id = userData.roleId ? parseInt(userData.roleId, 10) : null;
         
         const updated = await prisma.users.update({
             where: { id: uid },
             data: updateData
         });
+
+        // If companyId is provided, handle company ownership/linkage
+        if (userData.companyId !== undefined) {
+            const compId = userData.companyId ? parseInt(userData.companyId, 10) : null;
+            if (compId) {
+                if (userData.role === 'company_admin' || userData.role === 'company_owner') {
+                    await prisma.companies.update({
+                        where: { id: compId },
+                        data: { user_id: uid }
+                    }).catch(() => {});
+                }
+            } else if (userData.role === 'personnel') {
+                // If demoted to personnel, release company ownership so personnel cannot be company owner
+                await prisma.companies.updateMany({
+                    where: { user_id: uid },
+                    data: { user_id: null }
+                }).catch(() => {});
+            }
+        }
 
         logAudit({
             companyId: updated.company_id,
@@ -948,7 +968,7 @@ async function updatePlatformUser(userId, userData) {
             entityType: 'user',
             entityId: String(updated.id),
             entityName: updated.username,
-            description: `"${updated.username}" kullanıcısının rolü ve bilgileri güncellendi (${updated.role})`,
+            description: `"${updated.username}" kullanıcısının rolü (${updated.role}) ve yetkileri güncellendi`,
             severity: 'info'
         });
 

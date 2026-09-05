@@ -370,6 +370,11 @@ async function runAutoMigrations() {
                         log.info(`Native Migration: Added ${col.name} to users table in SQLite.`);
                     }
                 }
+
+                // Self-heal: ensure admin accounts on older databases have company_admin role instead of plain 'user'
+                try {
+                    sqliteDb.prepare("UPDATE users SET role = 'company_admin' WHERE role = 'user' AND (username = 'admin' OR email = 'admin@muayen.com')").run();
+                } catch(adminErr) {}
             }
         } catch (uErr) {
             log.error('Native Migration for users columns notice:', uErr.message);

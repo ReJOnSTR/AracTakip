@@ -47,7 +47,8 @@ import {
     History,
     ShieldAlert,
     Copy,
-    Filter
+    Filter,
+    UserCog
 } from 'lucide-react'
 import './PlatformAdmin.css'
 
@@ -140,6 +141,15 @@ export default function PlatformAdmin({ section }) {
     const [passwordModalUser, setPasswordModalUser] = useState(null)
     const [newPassword, setNewPassword] = useState('')
     const [passwordLoading, setPasswordLoading] = useState(false)
+
+    // Edit User Role Modal
+    const [editRoleModalUser, setEditRoleModalUser] = useState(null)
+    const [editRoleForm, setEditRoleForm] = useState({
+        role: 'user',
+        companyId: '',
+        fullName: ''
+    })
+    const [editRoleLoading, setEditRoleLoading] = useState(false)
 
     const [createUserModal, setCreateUserModal] = useState(false)
     const [newUserForm, setNewUserForm] = useState({
@@ -460,6 +470,40 @@ export default function PlatformAdmin({ section }) {
         }
     }
 
+    // Edit User Role Handlers
+    const handleOpenEditRole = (u) => {
+        setEditRoleModalUser(u)
+        setEditRoleForm({
+            role: u.role || u.accountType || 'user',
+            companyId: u.company?.id ? String(u.company.id) : (u.company_id ? String(u.company_id) : ''),
+            fullName: u.fullName || u.full_name || ''
+        })
+    }
+
+    const handleSaveUserRole = async (e) => {
+        e?.preventDefault()
+        if (!editRoleModalUser) return
+        setEditRoleLoading(true)
+        try {
+            const res = await window.electronAPI?.updatePlatformUser(editRoleModalUser.id, {
+                role: editRoleForm.role,
+                companyId: editRoleForm.companyId ? parseInt(editRoleForm.companyId, 10) : null,
+                fullName: editRoleForm.fullName
+            })
+            if (res?.success) {
+                setEditRoleModalUser(null)
+                await loadUsers()
+                await loadOverview()
+            } else {
+                alert('Rol güncelleme hatası: ' + (res?.error || 'Bilinmiyor'))
+            }
+        } catch (err) {
+            alert('Hata: ' + err.message)
+        } finally {
+            setEditRoleLoading(false)
+        }
+    }
+
     // Create User Submit
     const handleCreateUserSubmit = async (e) => {
         e.preventDefault()
@@ -711,10 +755,12 @@ export default function PlatformAdmin({ section }) {
 
     // User Role Options for Modal
     const userRoleOptions = [
-        { value: 'company_admin', label: 'Şirket Sahibi / Yöneticisi (Tüm Modüllere Erişim)' },
-        { value: 'personnel', label: 'Şoför / Saha Personeli (Sadece Kendi Bilgilerini Görür)' },
-        { value: 'admin', label: 'Birim / Modül Sorumlusu' },
-        { value: 'superadmin', label: 'Süper Yönetici (Tüm Platform Yetkisi)' }
+        { value: 'company_admin', label: '👑 Şirket Sahibi / Yöneticisi (Kasa, Finans, Ayarlar, Tüm Modüller)' },
+        { value: 'manager', label: '💼 Müdür / Operasyon Yöneticisi' },
+        { value: 'personnel', label: '👷 Şoför / Saha Personeli (Sadece Kendi Bilgilerini Görür)' },
+        { value: 'user', label: '👤 Standart Kullanıcı (Temel Operasyonel Görünüm)' },
+        { value: 'admin', label: '🛡️ Birim / Modül Sorumlusu' },
+        { value: 'superadmin', label: '⚡ Süper Yönetici (Tüm Platform Yetkisi)' }
     ]
 
     const companyOwnerOptions = [
@@ -806,6 +852,14 @@ export default function PlatformAdmin({ section }) {
                         <span>Onayla</span>
                     </button>
                 )}
+                <button
+                    className="action-icon-btn"
+                    onClick={() => handleOpenEditRole(r)}
+                    title="Rol & Yetki Düzenle"
+                    style={{ color: '#6366f1', borderColor: 'rgba(99, 102, 241, 0.4)' }}
+                >
+                    <UserCog size={13} />
+                </button>
                 <button
                     className="action-icon-btn"
                     onClick={() => { setPasswordModalUser(r); setNewPassword(''); }}
@@ -2123,6 +2177,92 @@ export default function PlatformAdmin({ section }) {
                             </button>
                             <button type="submit" className="btn btn-primary" disabled={passwordLoading}>
                                 {passwordLoading ? 'Kaydediliyor...' : 'Şifreyi Güncelle'}
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
+            )}
+
+            {/* ── MODAL: EDIT USER ROLE & PERMISSIONS ── */}
+            {editRoleModalUser && (
+                <Modal
+                    isOpen={!!editRoleModalUser}
+                    onClose={() => setEditRoleModalUser(null)}
+                    title={`Rol & Yetki Düzenle: ${editRoleModalUser.username}`}
+                    size="md"
+                >
+                    <form onSubmit={handleSaveUserRole} className="modal-form-grid">
+                        <div style={{ background: 'var(--bg-secondary)', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div>
+                                <div style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary)' }}>
+                                    {editRoleModalUser.username}
+                                </div>
+                                <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                    {editRoleModalUser.email}
+                                </div>
+                            </div>
+                            <span className={`badge ${
+                                editRoleModalUser.role === 'company_admin' || editRoleModalUser.accountType === 'company_owner' ? 'badge-primary' :
+                                editRoleModalUser.role === 'superadmin' ? 'badge-warning' :
+                                editRoleModalUser.role === 'personnel' ? 'badge-success' : 'badge-info'
+                            }`}>
+                                Mevcut: {editRoleModalUser.role || editRoleModalUser.accountType || 'user'}
+                            </span>
+                        </div>
+
+                        <div>
+                            <CustomInput
+                                label="Kullanıcı Adı / Tam İsim"
+                                value={editRoleForm.fullName}
+                                onChange={(val) => setEditRoleForm(prev => ({ ...prev, fullName: getVal(val) }))}
+                                placeholder="Örn: Halil Sak"
+                                maxLength={100}
+                            />
+                        </div>
+
+                        <div>
+                            <CustomSelect
+                                label="Sistem Rolü & Yetki Seviyesi"
+                                value={editRoleForm.role}
+                                onChange={(val) => setEditRoleForm(prev => ({ ...prev, role: getVal(val) }))}
+                                options={userRoleOptions}
+                            />
+                        </div>
+
+                        <div>
+                            <CustomSelect
+                                label="Bağlı Olduğu Şirket"
+                                value={editRoleForm.companyId}
+                                onChange={(val) => setEditRoleForm(prev => ({ ...prev, companyId: getVal(val) }))}
+                                options={userCompanyOptions}
+                            />
+                        </div>
+
+                        <div style={{ padding: '10px 12px', borderRadius: '6px', background: editRoleForm.role === 'company_admin' ? 'rgba(59, 130, 246, 0.08)' : (editRoleForm.role === 'personnel' ? 'rgba(16, 185, 129, 0.08)' : 'var(--bg-secondary)'), border: '1px solid var(--border-color)', fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                            {editRoleForm.role === 'company_admin' && (
+                                <span>👑 <strong>Şirket Yöneticisi:</strong> Kasa Finans, Personel Maaşları, Genel Ayarlar, Araçlar ve İşler dahil şirketin tüm modüllerine sınırsız tam erişim hakkı kazanır.</span>
+                            )}
+                            {editRoleForm.role === 'manager' && (
+                                <span>💼 <strong>Müdür:</strong> Operasyonel yönetim, araç takibi, işler ve finansal operasyonları yönetebilir.</span>
+                            )}
+                            {editRoleForm.role === 'personnel' && (
+                                <span>👷 <strong>Personel / Sürücü:</strong> Sadece kendi görevlerini, zimmetli aracını ve personel profilini görür. Şirket kasası ve ayarlar gizlenir.</span>
+                            )}
+                            {editRoleForm.role === 'user' && (
+                                <span>👤 <strong>Standart Kullanıcı:</strong> Temel operasyonları görür; kritik finansal verilere erişimi kısıtlıdır.</span>
+                            )}
+                            {editRoleForm.role === 'superadmin' && (
+                                <span>⚡ <strong>Süper Yönetici:</strong> Tüm platform, tüm şirketler ve sistem ayarlarında tam platform yetkisi.</span>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px' }}>
+                            <button type="button" className="btn btn-secondary" onClick={() => setEditRoleModalUser(null)}>
+                                İptal
+                            </button>
+                            <button type="submit" className="btn btn-primary" disabled={editRoleLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                {editRoleLoading && <Loader2 size={14} className="spin" />}
+                                <span>{editRoleLoading ? 'Kaydediliyor...' : 'Rolü Güncelle'}</span>
                             </button>
                         </div>
                     </form>
