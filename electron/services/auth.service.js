@@ -308,8 +308,49 @@ async function registerUser(userData) {
     }
 }
 
+let userColumnsEnsured = false;
+async function ensureUserColumnsExist() {
+    if (userColumnsEnsured) return;
+    try {
+        const { getDbPath } = require('../prismaClient');
+        const Database = require('better-sqlite3');
+        const dbPath = getDbPath();
+        if (dbPath && require('fs').existsSync(dbPath)) {
+            const db = new Database(dbPath);
+            try {
+                const cols = db.pragma('table_info("users")').map(c => c.name.toLowerCase());
+                if (cols.length > 0) {
+                    const needed = [
+                        ['two_factor_secret', 'TEXT'],
+                        ['two_factor_enabled', 'INTEGER DEFAULT 0'],
+                        ['two_factor_backup_codes', 'TEXT'],
+                        ['is_active', 'INTEGER DEFAULT 1'],
+                        ['role', "TEXT DEFAULT 'user'"],
+                        ['must_change_password', 'INTEGER DEFAULT 0'],
+                        ['full_name', 'TEXT'],
+                        ['role_id', 'INTEGER'],
+                        ['employee_id', 'INTEGER']
+                    ];
+                    for (const [col, def] of needed) {
+                        if (!cols.includes(col)) {
+                            db.prepare(`ALTER TABLE users ADD COLUMN ${col} ${def}`).run();
+                            log.info(`[Auth Self-Heal] Added missing column ${col} to users table.`);
+                        }
+                    }
+                }
+            } finally {
+                db.close();
+            }
+        }
+        userColumnsEnsured = true;
+    } catch (err) {
+        // Silently continue for remote postgres or other drivers
+    }
+}
+
 async function loginUser(credentials) {
     try {
+        await ensureUserColumnsExist();
         const { username, email, password } = credentials;
 
         const rawLookup = (email || username || '').trim();

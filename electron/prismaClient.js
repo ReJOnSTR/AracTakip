@@ -342,15 +342,42 @@ async function runAutoMigrations() {
                 sqliteDb.prepare(`INSERT INTO companies (${oldCompCols}) SELECT ${oldCompCols} FROM companies_old`).run();
                 sqliteDb.prepare('DROP TABLE IF EXISTS companies_old').run();
                 sqliteDb.prepare('PRAGMA foreign_keys = ON').run();
-                log.info('Native Migration: Successfully removed ON DELETE CASCADE from companies table in SQLite!');
             }
         } catch (compErr) {
             log.error('Native Migration for companies table notice:', compErr.message);
         }
+
+        // 4. Ensure all required columns for users table exist in SQLite (prevents 2FA column missing crash)
+        try {
+            const userPragma = sqliteDb.pragma("table_info('users')");
+            const uColNames = userPragma.map(col => col.name.toLowerCase());
+            if (uColNames.length > 0) {
+                const userColsToAdd = [
+                    { name: 'role', sql: "ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'" },
+                    { name: 'must_change_password', sql: "ALTER TABLE users ADD COLUMN must_change_password INTEGER DEFAULT 0" },
+                    { name: 'is_active', sql: "ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1" },
+                    { name: 'full_name', sql: "ALTER TABLE users ADD COLUMN full_name TEXT" },
+                    { name: 'role_id', sql: "ALTER TABLE users ADD COLUMN role_id INTEGER" },
+                    { name: 'employee_id', sql: "ALTER TABLE users ADD COLUMN employee_id INTEGER" },
+                    { name: 'two_factor_secret', sql: "ALTER TABLE users ADD COLUMN two_factor_secret TEXT" },
+                    { name: 'two_factor_enabled', sql: "ALTER TABLE users ADD COLUMN two_factor_enabled INTEGER DEFAULT 0" },
+                    { name: 'two_factor_backup_codes', sql: "ALTER TABLE users ADD COLUMN two_factor_backup_codes TEXT" }
+                ];
+
+                for (const col of userColsToAdd) {
+                    if (!uColNames.includes(col.name)) {
+                        sqliteDb.prepare(col.sql).run();
+                        log.info(`Native Migration: Added ${col.name} to users table in SQLite.`);
+                    }
+                }
+            }
+        } catch (uErr) {
+            log.error('Native Migration for users columns notice:', uErr.message);
+        }
         
         sqliteDb.close();
     } catch (err) {
-        log.error('Native Migration for documents columns failed:', err.message);
+        log.error('Native Migration for documents/users columns failed:', err.message);
     }
 
     const p = getPrismaClient();
@@ -393,17 +420,27 @@ async function runAutoMigrations() {
         log.error('Migration step 2 (transactions) error:', error.message);
     }
 
-    // 2b. Users: role, must_change_password (missing in older versions)
+    // 2b. Users: role, must_change_password, 2FA columns (missing in older versions)
     try {
         const uCols = await p.$queryRawUnsafe("PRAGMA table_info('users')");
         if (uCols.length > 0) {
-            if (!uCols.some(c => c.name === 'role')) {
-                await p.$executeRawUnsafe("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
-                log.info('Migration: Added role to users');
-            }
-            if (!uCols.some(c => c.name === 'must_change_password')) {
-                await p.$executeRawUnsafe("ALTER TABLE users ADD COLUMN must_change_password INTEGER DEFAULT 0");
-                log.info('Migration: Added must_change_password to users');
+            const neededCols = [
+                { name: 'role', sql: "ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'" },
+                { name: 'must_change_password', sql: "ALTER TABLE users ADD COLUMN must_change_password INTEGER DEFAULT 0" },
+                { name: 'is_active', sql: "ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1" },
+                { name: 'full_name', sql: "ALTER TABLE users ADD COLUMN full_name TEXT" },
+                { name: 'role_id', sql: "ALTER TABLE users ADD COLUMN role_id INTEGER" },
+                { name: 'employee_id', sql: "ALTER TABLE users ADD COLUMN employee_id INTEGER" },
+                { name: 'two_factor_secret', sql: "ALTER TABLE users ADD COLUMN two_factor_secret TEXT" },
+                { name: 'two_factor_enabled', sql: "ALTER TABLE users ADD COLUMN two_factor_enabled INTEGER DEFAULT 0" },
+                { name: 'two_factor_backup_codes', sql: "ALTER TABLE users ADD COLUMN two_factor_backup_codes TEXT" }
+            ];
+
+            for (const col of neededCols) {
+                if (!uCols.some(c => c.name.toLowerCase() === col.name.toLowerCase())) {
+                    await p.$executeRawUnsafe(col.sql);
+                    log.info(`Migration: Added ${col.name} to users`);
+                }
             }
         }
     } catch (error) {
