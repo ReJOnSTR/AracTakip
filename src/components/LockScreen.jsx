@@ -54,6 +54,12 @@ export default function LockScreen({ isLocked, onUnlock }) {
         }
     }, [isLocked])
 
+    const hashPassword = async (str) => {
+        if (!str) return ''
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str))
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
+    }
+
     const handleUnlock = async (e) => {
         e?.preventDefault()
         if (!password) return
@@ -63,8 +69,12 @@ export default function LockScreen({ isLocked, onUnlock }) {
         
         try {
             const currentLockSettings = getLockSettings()
-            if (currentLockSettings.useCustomPassword && currentLockSettings.customPassword) {
-                if (password === currentLockSettings.customPassword) {
+            if (currentLockSettings.useCustomPassword && (currentLockSettings.customPasswordHash || currentLockSettings.customPassword)) {
+                const inputHash = await hashPassword(password)
+                const isMatch = (currentLockSettings.customPasswordHash && inputHash === currentLockSettings.customPasswordHash) ||
+                                (currentLockSettings.customPassword && password === currentLockSettings.customPassword)
+
+                if (isMatch) {
                     onUnlock()
                     setPassword('')
                 } else {

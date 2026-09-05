@@ -8,9 +8,42 @@ import { useEffect } from 'react'
 
 import { useCompany } from '../context/CompanyContext'
 
+function canAccessPath(path, hasPermission, isAdmin, isSuperAdmin) {
+    if (isSuperAdmin) return true
+    if (path.startsWith('/platform')) return false
+    if (path === '/companies' || path === '/settings' || path.startsWith('/module-settings')) {
+        return isAdmin
+    }
+    if (isAdmin) return true
+
+    if (path.startsWith('/finance') || path === '/checks') {
+        return hasPermission('finance', 'can_read')
+    }
+    if (path.startsWith('/meal')) {
+        return hasPermission('meals', 'can_read')
+    }
+    if (path === '/payroll' || path === '/salary') {
+        return hasPermission('employees_view_salary') || hasPermission('employees', 'can_read')
+    }
+    if (path.startsWith('/employees') || path === '/leaves' || path === '/overtimes' || path === '/personel-dashboard') {
+        return hasPermission('employees', 'can_read')
+    }
+    if (path.startsWith('/works')) {
+        return hasPermission('works', 'can_read')
+    }
+    if (path.startsWith('/customers')) {
+        return hasPermission('customers', 'can_read')
+    }
+    if (path.startsWith('/vehicles') || path === '/maintenance' || path === '/inspections' || path === '/periodic-inspections' || path === '/insurance' || path === '/services' || path === '/assignments' || path === '/arvento-tracking') {
+        return hasPermission('vehicles', 'can_read')
+    }
+
+    return true
+}
+
 export default function Sidebar({ collapsed, onToggle }) {
     const { openNewTab } = useTabs()
-    const { user } = useAuth()
+    const { user, isAdmin, hasPermission } = useAuth()
     const { isImpersonating } = useCompany()
     const location = useLocation()
 
@@ -21,6 +54,11 @@ export default function Sidebar({ collapsed, onToggle }) {
         ? 'platform' 
         : getActiveModule(location.pathname, location.search)
     const activeMenus = moduleMenus[activeModule] || []
+
+    const filteredMenus = activeMenus.map(group => {
+        const items = group.items.filter(item => canAccessPath(item.path, hasPermission, isAdmin, isSuperAdmin))
+        return { ...group, items }
+    }).filter(group => group.items.length > 0)
 
     // Persist active module so we can recover it for non-module pages (like /settings)
     useEffect(() => {
@@ -39,7 +77,7 @@ export default function Sidebar({ collapsed, onToggle }) {
             </div>
 
             <nav className="sidebar-nav">
-                {activeMenus.map((group, index) => (
+                {filteredMenus.map((group, index) => (
                     <div className="nav-section" key={index}>
                         {group.title && <div className="nav-section-title">{group.title}</div>}
                         {group.items.map((item) => (

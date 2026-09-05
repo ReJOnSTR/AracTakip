@@ -117,6 +117,18 @@ function SuperAdminRoute({ children }) {
     return children
 }
 
+function PermissionRoute({ module, action = 'can_read', children }) {
+    const { hasPermission, isAdmin, isPersonnel, loading } = useAuth()
+
+    if (loading) return null
+    if (isAdmin) return children
+
+    if (!hasPermission(module, action)) {
+        return <Navigate to={isPersonnel ? "/personnel-profile" : "/portal"} replace />
+    }
+    return children
+}
+
 import BroadcastBanner from './components/BroadcastBanner'
 import ImpersonationBanner from './components/ImpersonationBanner'
 
@@ -174,13 +186,19 @@ function AppRoutes() {
 
     const urlParams = new URLSearchParams(window.location.search || (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : ''))
     const impIdFromUrl = urlParams.get('impersonate_company_id')
-    if (impIdFromUrl && !sessionStorage.getItem('aractakip_impersonate_company_id')) {
+    const isSuperAdmin = user?.role === 'superadmin'
+
+    // Only allow SuperAdmin to impersonate companies
+    if (impIdFromUrl && isSuperAdmin && !sessionStorage.getItem('aractakip_impersonate_company_id')) {
         sessionStorage.setItem('aractakip_impersonate_company_id', impIdFromUrl)
         const impNameFromUrl = urlParams.get('impersonate_company_name')
         if (impNameFromUrl) sessionStorage.setItem('aractakip_impersonate_company_name', decodeURIComponent(impNameFromUrl))
+    } else if (!isSuperAdmin) {
+        sessionStorage.removeItem('aractakip_impersonate_company_id')
+        sessionStorage.removeItem('aractakip_impersonate_company_name')
     }
-    const isImpersonating = !!(impIdFromUrl || sessionStorage.getItem('aractakip_impersonate_company_id'))
-    const isStandaloneSuperAdmin = user?.role === 'superadmin' && !isImpersonating
+    const isImpersonating = isSuperAdmin && !!(impIdFromUrl || sessionStorage.getItem('aractakip_impersonate_company_id'))
+    const isStandaloneSuperAdmin = isSuperAdmin && !isImpersonating
 
     return (
         <>
@@ -210,32 +228,32 @@ function AppRoutes() {
                                 : (isStandaloneSuperAdmin ? <Navigate to="/platform/users" replace /> : <MainPortal />)
                         } />
                         <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/finance-dashboard" element={<FinanceDashboard />} />
-                        <Route path="/finance" element={<Finance />} />
-                        <Route path="/checks" element={<Checks />} />
-                        <Route path="/meal-tickets" element={<MealTickets />} />
-                        <Route path="/meal-ticket-report" element={<MealTicketReport />} />
-                        <Route path="/meal-ticket-settings" element={<MealTicketSettings />} />
+                        <Route path="/finance-dashboard" element={<PermissionRoute module="finance"><FinanceDashboard /></PermissionRoute>} />
+                        <Route path="/finance" element={<PermissionRoute module="finance"><Finance /></PermissionRoute>} />
+                        <Route path="/checks" element={<PermissionRoute module="finance"><Checks /></PermissionRoute>} />
+                        <Route path="/meal-tickets" element={<PermissionRoute module="meals"><MealTickets /></PermissionRoute>} />
+                        <Route path="/meal-ticket-report" element={<PermissionRoute module="meals"><MealTicketReport /></PermissionRoute>} />
+                        <Route path="/meal-ticket-settings" element={<PermissionRoute module="meals"><MealTicketSettings /></PermissionRoute>} />
                         <Route path="/companies" element={<AdminRoute><Companies /></AdminRoute>} />
-                        <Route path="/vehicles" element={<Vehicles />} />
-                        <Route path="/vehicles/:id" element={<VehicleDetail />} />
-                        <Route path="/arvento-tracking" element={<ArventoTracking />} />
-                        <Route path="/maintenance" element={<Maintenance />} />
-                        <Route path="/inspections" element={<Inspections />} />
-                        <Route path="/periodic-inspections" element={<PeriodicInspections />} />
-                        <Route path="/insurance" element={<Insurance />} />
-                        <Route path="/services" element={<Services />} />
-                        <Route path="/assignments" element={<Assignments />} />
-                        <Route path="/employees" element={<Employees />} />
-                        <Route path="/employees/:id" element={<EmployeeDetail />} />
-                        <Route path="/leaves" element={<Leaves />} />
-                        <Route path="/personel-dashboard" element={<PersonelDashboard />} />
-                        <Route path="/payroll" element={<PayrollDashboard />} />
-                        <Route path="/overtimes" element={<Overtimes />} />
-                        <Route path="/works" element={<Works />} />
-                        <Route path="/works/:id" element={<WorkDetails />} />
-                        <Route path="/customers" element={<Customers />} />
-                        <Route path="/customers/:id" element={<CustomerDetail />} />
+                        <Route path="/vehicles" element={<PermissionRoute module="vehicles"><Vehicles /></PermissionRoute>} />
+                        <Route path="/vehicles/:id" element={<PermissionRoute module="vehicles"><VehicleDetail /></PermissionRoute>} />
+                        <Route path="/arvento-tracking" element={<PermissionRoute module="vehicles"><ArventoTracking /></PermissionRoute>} />
+                        <Route path="/maintenance" element={<PermissionRoute module="vehicles"><Maintenance /></PermissionRoute>} />
+                        <Route path="/inspections" element={<PermissionRoute module="vehicles"><Inspections /></PermissionRoute>} />
+                        <Route path="/periodic-inspections" element={<PermissionRoute module="vehicles"><PeriodicInspections /></PermissionRoute>} />
+                        <Route path="/insurance" element={<PermissionRoute module="vehicles"><Insurance /></PermissionRoute>} />
+                        <Route path="/services" element={<PermissionRoute module="vehicles"><Services /></PermissionRoute>} />
+                        <Route path="/assignments" element={<PermissionRoute module="vehicles"><Assignments /></PermissionRoute>} />
+                        <Route path="/employees" element={<PermissionRoute module="employees"><Employees /></PermissionRoute>} />
+                        <Route path="/employees/:id" element={<PermissionRoute module="employees"><EmployeeDetail /></PermissionRoute>} />
+                        <Route path="/leaves" element={<PermissionRoute module="employees"><Leaves /></PermissionRoute>} />
+                        <Route path="/personel-dashboard" element={<PermissionRoute module="employees"><PersonelDashboard /></PermissionRoute>} />
+                        <Route path="/payroll" element={<PermissionRoute module="employees"><PayrollDashboard /></PermissionRoute>} />
+                        <Route path="/overtimes" element={<PermissionRoute module="employees"><Overtimes /></PermissionRoute>} />
+                        <Route path="/works" element={<PermissionRoute module="works"><Works /></PermissionRoute>} />
+                        <Route path="/works/:id" element={<PermissionRoute module="works"><WorkDetails /></PermissionRoute>} />
+                        <Route path="/customers" element={<PermissionRoute module="customers"><Customers /></PermissionRoute>} />
+                        <Route path="/customers/:id" element={<PermissionRoute module="customers"><CustomerDetail /></PermissionRoute>} />
                         <Route path="/settings" element={<AdminRoute><Settings /></AdminRoute>} />
                         <Route path="/module-settings/:module" element={<AdminRoute><ModuleSettings /></AdminRoute>} />
                         <Route path="/platform-admin" element={<Navigate to="/platform/users" replace />} />

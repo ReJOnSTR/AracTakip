@@ -325,11 +325,26 @@ export default function Settings() {
         setTestingConnection(false)
     }
 
-    const handleLockSettingChange = (key, value) => {
-        const newLockSettings = { ...lockSettings, [key]: value }
+    const hashPassword = async (str) => {
+        if (!str) return ''
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str))
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
+    }
+
+    const handleLockSettingChange = async (key, value) => {
+        let newLockSettings = { ...lockSettings, [key]: value }
+        if (key === 'customPassword') {
+            const hash = await hashPassword(value)
+            newLockSettings.customPasswordHash = hash
+        }
         setLockSettings(newLockSettings)
-        localStorage.setItem('aractakip_lock_settings', JSON.stringify(newLockSettings))
-        window.dispatchEvent(new CustomEvent('aractakip_lock_settings_changed', { detail: newLockSettings }))
+
+        const toSave = { ...newLockSettings }
+        if (toSave.customPasswordHash) {
+            delete toSave.customPassword
+        }
+        localStorage.setItem('aractakip_lock_settings', JSON.stringify(toSave))
+        window.dispatchEvent(new CustomEvent('aractakip_lock_settings_changed', { detail: toSave }))
     }
 
     const toggleNotification = async (key) => {

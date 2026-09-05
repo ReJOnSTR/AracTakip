@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react' // Trigger recompilation
+import { useAuth } from '../context/AuthContext'
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -10,6 +11,7 @@ import { Plus, CheckCircle, Clock, AlertCircle, Calendar, Pencil, Trash2, MapPin
 import { formatDate, formatCurrency, getWorkStatusLabel, getWorkStatusColor } from '../utils/helpers'
 
 export default function Works() {
+    const { user, isAdmin, hasPermission } = useAuth()
     const { currentCompany } = useCompany()
     const { openNewTab } = useTabs()
     const navigate = useNavigate()
@@ -22,6 +24,12 @@ export default function Works() {
     const [saving, setSaving] = useState(false)
     const [confirmModal, setConfirmModal] = useState(null)
     const [showArchived, setShowArchived] = useState(false)
+
+    // Permissions
+    const canViewPrices = isAdmin || hasPermission('works_view_prices') || hasPermission('works', 'can_view_prices')
+    const canCreate = isAdmin || hasPermission('works_create', 'can_create') || hasPermission('works', 'can_create')
+    const canEdit = isAdmin || hasPermission('works_edit', 'can_update') || hasPermission('works', 'can_update')
+    const canDelete = isAdmin || hasPermission('works_delete', 'can_delete') || hasPermission('works', 'can_delete')
 
     useEffect(() => {
         if (searchParams.get('action') === 'new') {
@@ -263,7 +271,11 @@ export default function Works() {
         {
             key: 'total_price',
             label: 'Toplam Tutar',
-            render: (v) => <span className="font-semibold text-success">{formatCurrency(v || 0)}</span>
+            render: (v) => (
+                <span className="font-semibold text-success">
+                    {canViewPrices ? formatCurrency(v || 0) : '•••••• ₺'}
+                </span>
+            )
         }
     ]
 
@@ -274,9 +286,11 @@ export default function Works() {
                     <h1 className="page-title">İş Takibi (Vinç)</h1>
                     <p className="page-subtitle">Vinç kiralama ve iş emri yönetimi</p>
                 </div>
-                <button className="btn btn-primary" onClick={openCreateModal}>
-                    <Plus size={18} /> Yeni İş
-                </button>
+                {canCreate && (
+                    <button className="btn btn-primary" onClick={openCreateModal}>
+                        <Plus size={18} /> Yeni İş
+                    </button>
+                )}
             </div>
 
             {/* Summary Cards */}
@@ -338,25 +352,35 @@ export default function Works() {
                 ]}
                 emptyMessage="Henüz iş kaydı bulunamadı"
                 showSearch={true}
-                showCheckboxes={true}
+                showCheckboxes={canDelete}
                 showDateFilter={true}
                 dateFilterKey="start_date"
                 onRowClick={handleRowClick}
-                onBulkDelete={handleBulkDeleteClick}
-                onBulkArchive={handleBulkArchive}
+                onBulkDelete={canDelete ? handleBulkDeleteClick : undefined}
+                onBulkArchive={canEdit ? handleBulkArchive : undefined}
                 isArchiveView={showArchived}
                 onToggleArchiveView={setShowArchived}
                 actions={(item) => (
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }} onClick={(e) => e.stopPropagation()}>
-                        <button className="btn-icon" title="Düzenle" onClick={(e) => { e.stopPropagation(); openEditModal(item) }}><Pencil size={16} /></button>
-                        <button 
-                            className="btn-icon" 
-                            title={showArchived ? "Arşivden Çıkar" : "Arşivle"} 
-                            onClick={(e) => { e.stopPropagation(); handleArchiveClick(item) }}
-                        >
-                            {showArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
-                        </button>
-                        <button className="btn-icon danger" title="Sil" onClick={(e) => { e.stopPropagation(); handleDeleteClick(item) }}><Trash2 size={16} /></button>
+                        {canEdit && (
+                            <button className="btn-icon" title="Düzenle" onClick={(e) => { e.stopPropagation(); openEditModal(item) }}>
+                                <Pencil size={16} />
+                            </button>
+                        )}
+                        {canEdit && (
+                            <button 
+                                className="btn-icon" 
+                                title={showArchived ? "Arşivden Çıkar" : "Arşivle"} 
+                                onClick={(e) => { e.stopPropagation(); handleArchiveClick(item) }}
+                            >
+                                {showArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+                            </button>
+                        )}
+                        {canDelete && (
+                            <button className="btn-icon danger" title="Sil" onClick={(e) => { e.stopPropagation(); handleDeleteClick(item) }}>
+                                <Trash2 size={16} />
+                            </button>
+                        )}
                     </div>
                 )}
             />

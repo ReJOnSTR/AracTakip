@@ -356,34 +356,32 @@ async function loginUser(credentials) {
             });
         }
 
-        // 3. Fallback: If no user found and attempting 'admin' or if users table is empty
+        // 3. Fallback: Only on brand-new fresh database install when users table is completely empty
         if (!user && (lowerLookup === 'admin' || lowerLookup === 'admin@kontrol.app' || lowerLookup === 'admin@muayen.com')) {
-            log.info('Admin user not found during login. Auto-creating/resetting default admin account...');
-            let company = await prisma.companies.findFirst();
-            if (!company) {
-                company = await prisma.companies.create({
-                    data: { name: 'Varsayılan Şirket' }
+            const totalUsersCount = await prisma.users.count().catch(() => 1);
+            if (totalUsersCount === 0) {
+                log.info('Database empty. Provisioning initial default admin account...');
+                let company = await prisma.companies.findFirst();
+                if (!company) {
+                    company = await prisma.companies.create({
+                        data: { name: 'Varsayılan Şirket' }
+                    });
+                }
+
+                const initialHash = bcrypt.hashSync('admin123', 10);
+                user = await prisma.users.create({
+                    data: {
+                        username: 'admin',
+                        email: 'admin@kontrol-app.com',
+                        password_hash: initialHash,
+                        full_name: 'Sistem Yöneticisi',
+                        role: 'admin',
+                        company_id: company.id,
+                        is_active: 1,
+                        must_change_password: 1
+                    }
                 });
             }
-
-            const defaultPasswordHash = bcrypt.hashSync(password || 'admin', 10);
-            user = await prisma.users.upsert({
-                where: { username: 'admin' },
-                update: {
-                    password_hash: defaultPasswordHash,
-                    is_active: 1
-                },
-                create: {
-                    username: 'admin',
-                    email: 'admin@muayen.com',
-                    password_hash: defaultPasswordHash,
-                    full_name: 'Yönetici',
-                    role: 'admin',
-                    company_id: company.id,
-                    is_active: 1,
-                    must_change_password: 0
-                }
-            });
         }
 
         // 3. Fallback: If still no local user, check Supabase Auth Cloud and auto-provision
@@ -520,30 +518,20 @@ async function loginUser(credentials) {
         }
 
         if (!isValid) {
-            // Self-healing: Reset admin password to 'admin' if input is 'admin' or 'admin123'
-            if (user.username === 'admin' && (password === 'admin' || password === 'admin123')) {
-                const newHash = bcrypt.hashSync(password, 10);
-                await prisma.users.update({
-                    where: { id: user.id },
-                    data: { password_hash: newHash }
-                });
-                log.info('Reset admin user password hash');
-            } else {
-                log.warn(`Login failed: Incorrect password for user "${user.username}"`);
-                logAudit({
-                    companyId: user.company_id,
-                    userId: user.id,
-                    username: user.username,
-                    userRole: user.role,
-                    action: 'LOGIN_FAILED',
-                    entityType: 'auth',
-                    entityId: String(user.id),
-                    entityName: user.username,
-                    description: `"${user.username}" hesabı için hatalı şifre girildi`,
-                    severity: 'warn'
-                });
-                return { success: false, error: 'Hatalı şifre' };
-            }
+            log.warn(`Login failed: Incorrect password for user "${user.username}"`);
+            logAudit({
+                companyId: user.company_id,
+                userId: user.id,
+                username: user.username,
+                userRole: user.role,
+                action: 'LOGIN_FAILED',
+                entityType: 'auth',
+                entityId: String(user.id),
+                entityName: user.username,
+                description: `"${user.username}" hesabı için hatalı şifre girildi`,
+                severity: 'warn'
+            });
+            return { success: false, error: 'Hatalı şifre' };
         }
 
         // 3. Safely load relations separately
@@ -559,17 +547,36 @@ async function loginUser(credentials) {
         }
 
         let permissionsData = [];
+        // A. Load direct permissions assigned to user (e.g. JSON string in user.permissions)
+        if (user.permissions) {
+            try {
+                permissionsData = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions;
+            } catch (e) {
+                log.warn('Failed to parse user.permissions JSON during login:', e.message);
+            }
+        }
+
+        // B. Load role permissions from `roles` table if role_id is assigned
         if (user.role_id) {
             try {
-                const roleWithPerms = await prisma.custom_roles.findUnique({
+                const roleWithPerms = await prisma.roles.findUnique({
                     where: { id: user.role_id },
                     include: { permissions: true }
                 });
                 if (roleWithPerms && roleWithPerms.permissions) {
-                    permissionsData = roleWithPerms.permissions;
+                    if (Array.isArray(permissionsData)) {
+                        const existingModules = new Set(permissionsData.map(p => p.module));
+                        for (const rp of roleWithPerms.permissions) {
+                            if (!existingModules.has(rp.module)) {
+                                permissionsData.push(rp);
+                            }
+                        }
+                    } else if (!permissionsData || (typeof permissionsData === 'object' && Object.keys(permissionsData).length === 0)) {
+                        permissionsData = roleWithPerms.permissions;
+                    }
                 }
             } catch (e) {
-                log.error('Failed to load custom_role relation during login:', e.message);
+                log.error('Failed to load role relation during login:', e.message);
             }
         }
 
@@ -590,9 +597,10 @@ async function loginUser(credentials) {
             username: user.username,
             email: user.email,
             full_name: user.full_name,
-            role: user.role || 'admin',
+            role: user.role || 'user',
             role_id: user.role_id,
             employee_id: user.employee_id,
+            company_id: user.company_id || employeeData?.company_id || null,
             two_factor_enabled: user.two_factor_enabled === 1,
             mustChangePassword: user.must_change_password === 1,
             employee: employeeData ? {

@@ -197,16 +197,55 @@ export function AuthProvider({ children }) {
         }
     }
 
-    const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'company_admin' || user?.role === 'company_owner' || user?.role === 'user' || user?.username === 'admin' || !user?.role
+    const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'company_admin' || user?.role === 'company_owner'
+    const isSuperAdmin = user?.role === 'superadmin'
     const isManager = user?.role === 'manager' || isAdmin
     const isPersonnel = user?.role === 'personnel' || user?.role === 'employee'
 
-    const hasPermission = (moduleName, action = 'can_read') => {
+    const hasPermission = (moduleOrAction, action = 'can_read') => {
         if (isAdmin) return true;
         if (!user || !user.permissions) return false;
-        const perm = user.permissions.find(p => p.module === moduleName);
-        if (!perm) return false;
-        return !!perm[action];
+
+        const perms = user.permissions;
+
+        // If permissions is an object map e.g. { works: 'ADMIN', employees: 'VIEW' } or { works_view_prices: true }
+        if (!Array.isArray(perms) && typeof perms === 'object') {
+            if (perms[moduleOrAction] !== undefined) {
+                return !!perms[moduleOrAction];
+            }
+            const level = perms[moduleOrAction];
+            if (level === 'NONE' || !level) return false;
+            if (level === 'ADMIN') return true;
+            if (level === 'EDIT') {
+                return action === 'can_read' || action === 'can_create' || action === 'can_update';
+            }
+            if (level === 'VIEW') {
+                return action === 'can_read';
+            }
+            return false;
+        }
+
+        // If permissions is an array of permission records e.g. [{ module: 'works', can_read: true }]
+        if (Array.isArray(perms)) {
+            if (moduleOrAction.includes('_')) {
+                const parts = moduleOrAction.split('_');
+                const mod = parts[0];
+                const act = parts.slice(1).join('_');
+                const perm = perms.find(p => p.module === mod);
+                if (!perm) return false;
+                if (act.includes('delete')) return !!perm.can_delete;
+                if (act.includes('create') || act.includes('add')) return !!perm.can_create;
+                if (act.includes('edit') || act.includes('update')) return !!perm.can_update;
+                if (act.includes('view') || act.includes('read')) return !!perm.can_read;
+                return !!perm.can_read;
+            }
+
+            const perm = perms.find(p => p.module === moduleOrAction);
+            if (!perm) return false;
+            return !!perm[action];
+        }
+
+        return false;
     }
 
     return (
@@ -219,6 +258,7 @@ export function AuthProvider({ children }) {
             logout, 
             updateProfile,
             isAdmin,
+            isSuperAdmin,
             isManager,
             isPersonnel,
             hasPermission

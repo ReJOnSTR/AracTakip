@@ -10,11 +10,19 @@ export function CompanyProvider({ children }) {
     const [currentCompany, setCurrentCompany] = useState(null)
     const [loading, setLoading] = useState(true)
     const [upcomingEvents, setUpcomingEvents] = useState([])
+    const isSuperAdmin = user?.role === 'superadmin'
+
     const [isImpersonating, setIsImpersonating] = useState(() => {
+        if (user && user.role !== 'superadmin') {
+            sessionStorage.removeItem('aractakip_impersonate_company_id')
+            sessionStorage.removeItem('aractakip_impersonate_company_name')
+            return false
+        }
         const urlParams = new URLSearchParams(window.location.search || (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : ''))
         return !!(urlParams.get('impersonate_company_id') || sessionStorage.getItem('aractakip_impersonate_company_id'))
     })
     const [impersonatedCompanyName, setImpersonatedCompanyName] = useState(() => {
+        if (user && user.role !== 'superadmin') return ''
         const urlParams = new URLSearchParams(window.location.search || (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : ''))
         return urlParams.get('impersonate_company_name') || sessionStorage.getItem('aractakip_impersonate_company_name') || ''
     })
@@ -76,7 +84,8 @@ export function CompanyProvider({ children }) {
                 const impId = urlParams.get('impersonate_company_id') || sessionStorage.getItem('aractakip_impersonate_company_id')
                 const impName = urlParams.get('impersonate_company_name') || sessionStorage.getItem('aractakip_impersonate_company_name')
 
-                if (impId) {
+                // Security Check: Impersonation is STRICTLY allowed only for SuperAdmin
+                if (impId && user?.role === 'superadmin') {
                     const numericImpId = parseInt(impId, 10)
                     sessionStorage.setItem('aractakip_impersonate_company_id', String(numericImpId))
                     if (impName) sessionStorage.setItem('aractakip_impersonate_company_name', decodeURIComponent(impName))
@@ -88,9 +97,14 @@ export function CompanyProvider({ children }) {
                         name: impName ? decodeURIComponent(impName) : `Şirket #${numericImpId}`
                     }
                     setCurrentCompany(targetComp)
-                    // Note: In observer mode, do NOT write to localStorage to prevent polluting SuperAdmin's session
                 } else {
-                    // Restore last selected company or select first
+                    // Non-superadmin or normal mode: Purge any stale impersonation flags
+                    sessionStorage.removeItem('aractakip_impersonate_company_id')
+                    sessionStorage.removeItem('aractakip_impersonate_company_name')
+                    setIsImpersonating(false)
+                    setImpersonatedCompanyName('')
+
+                    // Restore last selected company or select first from authorized companies
                     const storedCompanyId = localStorage.getItem('aractakip_company')
                     const storedCompany = result.data.find(c => c.id === parseInt(storedCompanyId))
 
