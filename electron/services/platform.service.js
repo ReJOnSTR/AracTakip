@@ -18,7 +18,9 @@ async function getPlatformOverview() {
                             id: true,
                             username: true,
                             email: true,
-                            full_name: true
+                            full_name: true,
+                            role: true,
+                            employee_id: true
                         }
                     },
                     _count: {
@@ -39,6 +41,19 @@ async function getPlatformOverview() {
             prisma.users.count()
         ]);
 
+        // Find fallback default admin if company user_id is missing or points to a personnel
+        const defaultAdmin = await prisma.users.findFirst({
+            where: {
+                OR: [
+                    { email: 'admin@muayen.com' },
+                    { username: 'admin' },
+                    { role: 'company_admin' },
+                    { role: 'admin' }
+                ]
+            },
+            select: { id: true, username: true, email: true, full_name: true }
+        }).catch(() => null);
+
         return {
             success: true,
             data: {
@@ -49,28 +64,33 @@ async function getPlatformOverview() {
                     totalWorks,
                     totalUsers
                 },
-                companies: companies.map(c => ({
-                    id: c.id,
-                    name: c.name,
-                    tax_number: c.tax_number || '-',
-                    tax_office: c.tax_office || '-',
-                    phone: c.phone || '-',
-                    address: c.address || '-',
-                    created_at: c.created_at,
-                    owner: c.users ? {
-                        id: c.users.id,
-                        username: c.users.username,
-                        email: c.users.email,
-                        fullName: c.users.full_name
-                    } : null,
-                    counts: {
-                        vehicles: c._count?.vehicles || 0,
-                        employees: c._count?.employees || 0,
-                        works: c._count?.works || 0,
-                        customers: c._count?.customers || 0,
-                        transactions: c._count?.transactions || 0
-                    }
-                }))
+                companies: companies.map(c => {
+                    const isPersonnelUser = c.users && (c.users.role === 'personnel' || c.users.employee_id);
+                    const validOwnerUser = (!isPersonnelUser && c.users) ? c.users : defaultAdmin;
+
+                    return {
+                        id: c.id,
+                        name: c.name,
+                        tax_number: c.tax_number || '-',
+                        tax_office: c.tax_office || '-',
+                        phone: c.phone || '-',
+                        address: c.address || '-',
+                        created_at: c.created_at,
+                        owner: validOwnerUser ? {
+                            id: validOwnerUser.id,
+                            username: validOwnerUser.username,
+                            email: validOwnerUser.email,
+                            fullName: validOwnerUser.full_name
+                        } : null,
+                        counts: {
+                            vehicles: c._count?.vehicles || 0,
+                            employees: c._count?.employees || 0,
+                            works: c._count?.works || 0,
+                            customers: c._count?.customers || 0,
+                            transactions: c._count?.transactions || 0
+                        }
+                    };
+                })
             }
         };
     } catch (error) {
@@ -121,18 +141,21 @@ async function getPlatformUsers() {
             let accountType = 'user';
             let accountBadge = 'Kullanıcı';
 
+            const isStaffOrDriver = Boolean(u.employee || u.employee_id || (u.role && u.role.toLowerCase() === 'personnel'));
+
             if (u.role === 'superadmin') {
                 accountType = 'superadmin';
                 accountBadge = 'Süper Yönetici';
+            } else if (isStaffOrDriver) {
+                // An employee/driver MUST ALWAYS be tagged as employee, never company_owner
+                accountType = 'employee';
+                accountBadge = 'Personel / Şoför';
+                linkedCompany = u.employee?.companies || (u.companies && u.companies[0]) || null;
             } else if (u.companies && u.companies.length > 0) {
                 accountType = 'company_owner';
                 accountBadge = 'Şirket Yöneticisi';
                 linkedCompany = u.companies[0];
-            } else if (u.employee) {
-                accountType = 'employee';
-                accountBadge = 'Personel / Şoför';
-                linkedCompany = u.employee.companies || null;
-            } else if (u.role === 'company_admin' || u.role === 'admin') {
+            } else if (u.role === 'company_admin' || u.role === 'admin' || u.role === 'manager') {
                 accountType = 'company_admin';
                 accountBadge = 'Şirket Yöneticisi';
             }

@@ -139,6 +139,20 @@ async function runMigration() {
                 const cols = Object.keys(row).filter(c => pgColumns.has(c));
                 if (cols.length === 0) continue;
 
+                // PROTECTION: When migrating companies, never assign a personnel user as company owner
+                if (tableName === 'companies') {
+                    // Find actual admin user id in Postgres
+                    const adminRes = await pg.query("SELECT id FROM users WHERE email = 'admin@muayen.com' OR role = 'company_admin' OR role = 'admin' LIMIT 1");
+                    if (adminRes.rows.length > 0) {
+                        row.user_id = adminRes.rows[0].id;
+                    }
+                }
+
+                // PROTECTION: When migrating users, ensure admin accounts keep company_admin role
+                if (tableName === 'users' && (row.email === 'admin@muayen.com' || row.username === 'admin')) {
+                    row.role = 'company_admin';
+                }
+
                 const values = cols.map(c => {
                     const val = row[c];
                     if (val === undefined || val === null) return null;
@@ -152,7 +166,8 @@ async function runMigration() {
                 const placeholders = cols.map((_, i) => `$${i + 1}`).join(', ');
                 const colNames = cols.map(c => `"${c}"`).join(', ');
 
-                const insertSql = `INSERT INTO "${tableName}" (${colNames}) VALUES (${placeholders}) ON CONFLICT (id) DO NOTHING;`;
+                const updateSets = cols.filter(c => c !== 'id').map(c => `"${c}" = EXCLUDED."${c}"`).join(', ');
+                const insertSql = `INSERT INTO "${tableName}" (${colNames}) VALUES (${placeholders}) ON CONFLICT (id) DO UPDATE SET ${updateSets};`;
                 try {
                     await pg.query(insertSql, values);
                 } catch (rowErr) {}
