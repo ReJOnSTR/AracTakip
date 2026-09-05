@@ -11,11 +11,12 @@ async function getCompanies(userId) {
             }).catch(() => null);
 
             if (user) {
-                if (user.role === 'superadmin') {
+                const role = (user.role || '').toLowerCase();
+                if (role === 'superadmin') {
                     companies = await prisma.companies.findMany({
                         orderBy: { name: 'asc' }
                     });
-                } else if (user.role === 'personnel' && user.employee_id) {
+                } else if ((role === 'personnel' || role === 'employee') && user.employee_id) {
                     const emp = await prisma.employees.findUnique({
                         where: { id: user.employee_id }
                     }).catch(() => null);
@@ -24,8 +25,11 @@ async function getCompanies(userId) {
                             where: { id: parseInt(emp.company_id, 10) }
                         });
                     }
+                    if (companies.length === 0) {
+                        companies = await prisma.companies.findMany();
+                    }
                 } else {
-                    // For admin / manager: return companies owned by this user or unassigned
+                    // For admin / manager / company_admin / company_owner: return companies owned by this user or unassigned
                     companies = await prisma.companies.findMany({
                         where: {
                             OR: [

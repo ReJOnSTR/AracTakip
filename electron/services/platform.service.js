@@ -834,6 +834,44 @@ async function createPlatformCompany(data) {
 }
 
 /**
+ * Update an existing Company and owner assignment from Platform Admin
+ */
+async function updatePlatformCompany(data) {
+    try {
+        const { id, name, taxNumber, taxOffice, sgkNo, address, phone, ownerUserId } = data;
+        if (!id) return { success: false, error: 'Şirket kimliği zorunludur' };
+
+        const updatedComp = await prisma.companies.update({
+            where: { id: parseInt(id, 10) },
+            data: {
+                name: name ? name.trim() : undefined,
+                tax_number: taxNumber !== undefined ? taxNumber : undefined,
+                tax_office: taxOffice !== undefined ? taxOffice : undefined,
+                sgk_no: sgkNo !== undefined ? sgkNo : undefined,
+                address: address !== undefined ? address : undefined,
+                phone: phone !== undefined ? phone : undefined,
+                user_id: ownerUserId !== undefined ? (ownerUserId && ownerUserId !== '' ? parseInt(ownerUserId, 10) : null) : undefined
+            }
+        });
+
+        logAudit({
+            companyId: updatedComp.id,
+            action: 'UPDATE',
+            entityType: 'company',
+            entityId: String(updatedComp.id),
+            entityName: updatedComp.name,
+            description: `SuperAdmin tarafından "${updatedComp.name}" şirketi güncellendi`,
+            severity: 'info'
+        });
+
+        return { success: true, data: updatedComp };
+    } catch (error) {
+        console.error('updatePlatformCompany error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
  * Delete a Company and clean resources
  */
 async function deletePlatformCompany(companyId) {
@@ -944,5 +982,6 @@ module.exports = {
     toggleAnnouncementStatus,
     deletePlatformAnnouncement,
     createPlatformCompany,
+    updatePlatformCompany,
     deletePlatformCompany
 };

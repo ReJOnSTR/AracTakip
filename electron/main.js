@@ -2788,6 +2788,9 @@ ipcMain.handle('platform:deleteAnnouncement', async (event, id) => {
 ipcMain.handle('platform:createCompany', async (event, data) => {
     return await db.createPlatformCompany(data);
 });
+ipcMain.handle('platform:updateCompany', async (event, data) => {
+    return await db.updatePlatformCompany(data);
+});
 ipcMain.handle('platform:deleteCompany', async (event, companyId) => {
     return await db.deletePlatformCompany(companyId);
 });

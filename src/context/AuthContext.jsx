@@ -197,19 +197,20 @@ export function AuthProvider({ children }) {
         }
     }
 
-    const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'company_admin' || user?.role === 'company_owner'
-    const isSuperAdmin = user?.role === 'superadmin'
-    const isManager = user?.role === 'manager' || isAdmin
-    const isPersonnel = user?.role === 'personnel' || user?.role === 'employee'
+    const normalizedRole = (user?.role || '').toLowerCase()
+    const isAdmin = normalizedRole === 'admin' || normalizedRole === 'superadmin' || normalizedRole === 'company_admin' || normalizedRole === 'company_owner' || normalizedRole === 'manager'
+    const isSuperAdmin = normalizedRole === 'superadmin'
+    const isManager = normalizedRole === 'manager' || isAdmin
+    const isPersonnel = normalizedRole === 'personnel' || normalizedRole === 'employee'
 
     const hasPermission = (moduleOrAction, action = 'can_read') => {
         if (isAdmin) return true;
-        if (!user || !user.permissions) return false;
+        if (!user) return false;
 
         const perms = user.permissions;
 
         // If permissions is an object map e.g. { works: 'ADMIN', employees: 'VIEW' } or { works_view_prices: true }
-        if (!Array.isArray(perms) && typeof perms === 'object') {
+        if (perms && !Array.isArray(perms) && typeof perms === 'object' && Object.keys(perms).length > 0) {
             if (perms[moduleOrAction] !== undefined) {
                 return !!perms[moduleOrAction];
             }
@@ -226,7 +227,7 @@ export function AuthProvider({ children }) {
         }
 
         // If permissions is an array of permission records e.g. [{ module: 'works', can_read: true }]
-        if (Array.isArray(perms)) {
+        if (Array.isArray(perms) && perms.length > 0) {
             if (moduleOrAction.includes('_')) {
                 const parts = moduleOrAction.split('_');
                 const mod = parts[0];
@@ -243,6 +244,19 @@ export function AuthProvider({ children }) {
             const perm = perms.find(p => p.module === moduleOrAction);
             if (!perm) return false;
             return !!perm[action];
+        }
+
+        // Fallback for standard staff / personnel users without an explicit role matrix assigned:
+        // Sensitive financial & administration modules are strictly blocked unless granted.
+        const sensitivePrefixes = ['finance', 'check', 'salary', 'payroll', 'employees_view_salary', 'setting', 'compan', 'platform'];
+        const isSensitive = sensitivePrefixes.some(s => moduleOrAction.toLowerCase().includes(s));
+        if (isSensitive) {
+            return false;
+        }
+
+        // Standard operational read access for vehicles, works, customers, leaves, assignments:
+        if (action === 'can_read' || action.includes('view') || action.includes('read')) {
+            return true;
         }
 
         return false;
