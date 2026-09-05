@@ -112,9 +112,9 @@ async function getPlatformAuditLogs(params = {}) {
         if (search && search.trim()) {
             const query = search.trim();
             where.OR = [
-                { username: { contains: query, mode: 'insensitive' } },
-                { entity_name: { contains: query, mode: 'insensitive' } },
-                { description: { contains: query, mode: 'insensitive' } }
+                { username: { contains: query } },
+                { entity_name: { contains: query } },
+                { description: { contains: query } }
             ];
         }
 

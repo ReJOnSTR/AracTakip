@@ -68,12 +68,12 @@ async function registerUser(userData) {
 
         // 2. Check existing user by email
         const existingEmailUser = await prisma.users.findFirst({
-            where: { email: { equals: cleanEmail, mode: 'insensitive' } }
+            where: { email: cleanEmail }
         });
 
         // 3. Check existing user by username
         const existingUsernameUser = await prisma.users.findFirst({
-            where: { username: { equals: cleanUsername, mode: 'insensitive' } }
+            where: { username: cleanUsername }
         });
 
         let targetUserId = null;
@@ -319,16 +319,19 @@ async function loginUser(credentials) {
         }
 
         const lowerLookup = rawLookup.toLowerCase();
+        const upperLookup = rawLookup.toUpperCase();
         log.info(`Attempting login for: "${rawLookup}"`);
 
         // 1. Safe simple query with case-insensitive matching
         let user = await prisma.users.findFirst({
             where: {
                 OR: [
-                    { email: { equals: rawLookup, mode: 'insensitive' } },
-                    { username: { equals: rawLookup, mode: 'insensitive' } },
-                    { email: { equals: lowerLookup, mode: 'insensitive' } },
-                    { username: { equals: lowerLookup, mode: 'insensitive' } }
+                    { email: rawLookup },
+                    { username: rawLookup },
+                    { email: lowerLookup },
+                    { username: lowerLookup },
+                    { email: upperLookup },
+                    { username: upperLookup }
                 ]
             }
         });
@@ -970,7 +973,7 @@ async function syncPasswordReset(data) {
         }
 
         const user = await prisma.users.findFirst({
-            where: { email: { equals: email, mode: 'insensitive' } }
+            where: { email: email.trim().toLowerCase() }
         });
 
         if (user) {
@@ -1016,7 +1019,7 @@ async function requestPasswordReset(data) {
 
         // 1. Check if user exists in public.users
         const user = await prisma.users.findFirst({
-            where: { email: { equals: cleanEmail, mode: 'insensitive' } }
+            where: { email: cleanEmail }
         });
 
         const { supabaseAdmin } = require('./supabase.service');
@@ -1175,7 +1178,7 @@ async function completePasswordReset(data) {
         // 1. Update PostgreSQL user
         const newHash = bcrypt.hashSync(newPassword, 10);
         await prisma.users.updateMany({
-            where: { email: { equals: cleanEmail, mode: 'insensitive' } },
+            where: { email: cleanEmail },
             data: { password_hash: newHash }
         });
 
@@ -1299,7 +1302,7 @@ async function activateUserByEmail(data) {
 
         const cleanEmail = email.trim().toLowerCase();
         const user = await prisma.users.findFirst({
-            where: { email: { equals: cleanEmail, mode: 'insensitive' } }
+            where: { email: cleanEmail }
         });
 
         if (user) {
